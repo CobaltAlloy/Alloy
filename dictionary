@@ -1,3 +1,116 @@
+StackTracePlus.lua
+
+var_0_0 _G
+var_0_1 string
+var_0_2 io
+var_0_3 debug
+var_0_4 corutine
+var_0_5 tostring
+var_0_6 print
+var_0_7 require
+var_0_8 next
+var_0_9 assert
+var_0_10 pcall
+var_0_11 type
+var_0_12 pairs
+var_0_13 ipairs
+var_0_14 error
+var_0_15 maxLocals
+var_0_16 maxLevel
+var_0_17 maxTraceLevels
+var_0_18 io_open
+var_0_19 string_gmatch
+var_0_20 string_sub
+var_0_21 table_concat
+var_0_22 _M
+var_0_23 m_known_tables
+var_0_24 add_known_module
+var_0_25 m_user_known_tables
+var_0_26 m_known_functions
+var_0_27 m_user_known_functions
+var_0_28 ParseLine
+var_0_29 GuessFunctionName
+var_0_30 Dumper
+iter_0_0 _
+iter_0_1 name
+
+arg_1_0 name
+arg_1_1 desc
+var_1_0 ok
+var_1_1 mod
+
+arg_2_0 line
+var_2_0 match
+var_2_1 match
+var_2_2 match
+
+arg_3_0 info
+var_3_0 file
+var_3_1 err
+var_3_2 line
+var_3_3 line
+var_3_4 lineNumber
+iter_3_0 i
+iter_3_1 l
+
+arg_4_0 thread
+var_4_0 t
+iter_4_0 k
+iter_4_1 v
+
+arg_5_0 level
+arg_5_1 what
+
+arg_6_0 level
+arg_6_1 loc
+
+arg_7_0 self
+arg_7_1 text
+
+arg_8_0 self
+arg_8_1 fmt
+
+arg_9_0 self
+
+arg_10_0 self
+arg_10_1 level
+var_10_0 prefix
+var_10_1 i
+var_10_2 name
+var_10_3 value
+var_10_4 txt
+var_10_5 info
+var_10_6 fun_name
+var_10_7 source
+var_10_8 s
+var_10_9 source
+iter_10_0 k
+iter_10_1 v
+
+arg_11_0 thread
+arg_11_1 message
+arg_11_2 level
+var_11_0 dumper
+var_11_1 original_error
+var_11_2 first
+var_11_3 level_to_show
+var_11_4 info
+var_11_5 function_name
+var_11_6 source
+var_11_7 s
+var_11_8 function_name
+var_11_9 source
+var_11_10 was_guessed
+var_11_11 function_type
+iter_11_0 k
+iter_11_1 v
+
+arg_12_0 tab
+arg_12_1 description
+
+arg_13_0 fun
+arg_13_1 description
+
 main.lua
 
 var_0_0 rndTest
@@ -63,7 +176,6 @@ var_14_2 msg
 var_15_0 locale
 var_15_1 language
 var_15_2 dev_mode
-
 iter_15_0 i
 iter_15_1 v
 
