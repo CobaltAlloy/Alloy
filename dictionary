@@ -1,0 +1,107 @@
+main.lua
+
+var_0_0 rndTest
+var_0_1 math
+var_0_2 mainUpdate
+var_0_3 mainRender
+var_0_4 mainOnResize
+var_0_5 mainDisplayChanged
+var_0_6 preInit
+var_0_7 loadingUpdate
+var_0_8 platformInit
+var_0_9 argsInit
+var_0_10 defsInit
+var_0_11 gameInit
+var_0_12 networkInit
+var_0_13 paramsParse
+var_0_14 modScan
+var_0_15 modLoad
+var_0_16 accountInit
+var_0_17 modLaunch
+var_0_18 launchGame
+var_0_19 mainClose
+var_0_20 keyPressed
+var_0_21 keyCharacter
+var_0_22 mouseClick
+var_0_23 joyButtonPressed
+var_0_24 joyButtonReleased
+var_0_25 suspend
+
+arg_1_0 index
+var_1_0 val
+
+arg_2_0 message
+
+arg_3_0 v
+var_3_1 path
+var_3_0 preload
+
+arg_4_0 time
+
+arg_6_0 w
+arg_6_1 h
+var_6_0 clamped_w
+var_6_1 clamped_h
+
+arg_7_0 v
+
+arg_8_0 value
+arg_8_1 default
+
+arg_10_0 dt
+
+var_11_0 platform
+var_11_1 file_args
+var_11_2 config_file
+var_11_3 f
+var_11_4 v
+
+var_14_0 assetPath
+var_14_1 success
+var_14_2 msg
+
+var_15_0 locale
+var_15_1 language
+var_15_2 dev_mode
+
+iter_15_0 i
+iter_15_1 v
+
+var_19_0 ok
+var_19_1 sec
+
+var_20_0 developer_account
+var_20_1 devstate
+var_20_2 devstate_new
+var_20_3 account_name
+var_20_4 accountState
+var_20_5 musicState
+var_20_6 inputState
+
+var_22_0 dev_mode
+var_22_1 path
+var_22_2 lobby
+var_22_3 password
+var_22_4 default
+
+arg_24_0 key
+arg_24_1 is_bonus_key
+var_24_0 b
+var_24_1 path
+
+arg_25_0 self
+arg_25_1 text
+var_25_0 replayfilename
+
+arg_26_0 byte
+
+arg_27_0 x
+arg_27_1 y
+arg_27_2 button
+arg_27_3 clickCount
+
+arg_28_0 joy
+arg_28_1 btn
+
+arg_29_0 joy
+arg_29_1 btn
