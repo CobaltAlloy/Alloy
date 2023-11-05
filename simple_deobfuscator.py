@@ -1,6 +1,10 @@
 import os
 import sys
 
+if (len(sys.argv) < 2):
+    print("For help use: python simple_deobfuscator.py help")
+    exit(0)
+
 if (sys.argv[1] == "help" or sys.argv[1] == "h"):
     print("Usage: python simple_deobfuscator.py <path/to/dictionary> <path/to/target/dir>")
     exit(0)

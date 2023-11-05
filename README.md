@@ -1,6 +1,4 @@
 # Co-tools
 Random cobalt tools
 
-For python tool usage:
-
-> python tool.py help/h
+For python tool usage run the python script
