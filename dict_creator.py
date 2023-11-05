@@ -100,7 +100,7 @@ for progress, key in enumerate(sorted_keys):
     print("\x1b[2J\x1b[1;0H=================Looking for: " + key + " ================= " + str(progress + 1) + "/" + str(len(sorted_keys)) + " \x1b[K")
     for i in range(5):
         key_line = key_dict[key]
-        if (key_line + i - 2 > 0 and key_line + i - 2 < len(stripped_decomp)):
+        if (key_line + i - 2 > -1 and key_line + i - 2 < len(stripped_decomp)):
             print("\x1b[" + str(i + 2) + ";0H" + stripped_decomp[key_line + i - 2])
     print("\x1b[7;0H================================================================")
     loop = True
@@ -111,7 +111,7 @@ for progress, key in enumerate(sorted_keys):
             if search in line:
                 for i in range(5):
                     key_line = key_dict[key]
-                    if (key_line + i - 2 > 0 and key_line + i - 2 < len(stripped_source)):
+                    if (key_line + i - 2 > -1 and key_line + i - 2 < len(stripped_source)):
                         print("\x1b[" + str(i + 10) + ";0H" + stripped_source[key_line + i - 2] + "\x1b[K")
 
         mapping = input("\x1b[16;0HEnter mapping or press enter for another search: \x1b[K")

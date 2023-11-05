@@ -1,5 +1,4 @@
 StackTracePlus.lua
-
 var_0_0 _G
 var_0_1 string
 var_0_2 io
@@ -33,17 +32,14 @@ var_0_29 GuessFunctionName
 var_0_30 Dumper
 iter_0_0 _
 iter_0_1 name
-
 arg_1_0 name
 arg_1_1 desc
 var_1_0 ok
 var_1_1 mod
-
 arg_2_0 line
 var_2_0 match
 var_2_1 match
 var_2_2 match
-
 arg_3_0 info
 var_3_0 file
 var_3_1 err
@@ -52,26 +48,19 @@ var_3_3 line
 var_3_4 lineNumber
 iter_3_0 i
 iter_3_1 l
-
 arg_4_0 thread
 var_4_0 t
 iter_4_0 k
 iter_4_1 v
-
 arg_5_0 level
 arg_5_1 what
-
 arg_6_0 level
 arg_6_1 loc
-
 arg_7_0 self
 arg_7_1 text
-
 arg_8_0 self
 arg_8_1 fmt
-
 arg_9_0 self
-
 arg_10_0 self
 arg_10_1 level
 var_10_0 prefix
@@ -86,7 +75,6 @@ var_10_8 s
 var_10_9 source
 iter_10_0 k
 iter_10_1 v
-
 arg_11_0 thread
 arg_11_1 message
 arg_11_2 level
@@ -104,146 +92,107 @@ var_11_10 was_guessed
 var_11_11 function_type
 iter_11_0 k
 iter_11_1 v
-
 arg_12_0 tab
 arg_12_1 description
-
 arg_13_0 fun
 arg_13_1 description
 
 account.lua
-
 arg_1_0 self
 var_1_0 a
-
 arg_2_0 self
 arg_2_1 story
-
 arg_3_0 self
 arg_3_1 if
 arg_3_2 preset
 var_3_0 story
-
 arg_4_0 self
 arg_4_1 controller
 var_4_0 gs
-
 arg_5_0 self
 arg_5_1 id 
 arg_5_2 prof
-
 arg_6_0 self
 arg_6_1 id
-
 arg_7_0 self
-
 arg_8_0 self
 arg_8_1 name
-
 arg_9_0 self
 arg_9_1 name
-
 arg_10_0 self
 arg_10_1 resourceType
 arg_10_2 name
-
 arg_11_0 self
 arg_11_1 name
-
 arg_12_0 self
 arg_12_1 name
-
 arg_13_0 self
 arg_13_1 name
-
 arg_14_0 self
 arg_14_1 name
-
 arg_15_0 self
 arg_15_1 name
-
 arg_16_0 self
 arg_16_1 name
-
 arg_17_0 self
 arg_17_1 name
-
 arg_18_0 self
 arg_18_1 name
 arg_18_2 value
-
 arg_19_0 self
 arg_19_1 name
-
 arg_20_0 self
 arg_20_1 name
 arg_20_2 value
-
 arg_21_0 self
 arg_21_1 name
-
 arg_22_0 self
 arg_22_1 name
 arg_22_2 value
-
 arg_23_0 self
 arg_23_1 id
-
 arg_24_0 self
 arg_24_1 str
-
 arg_25_0 self
 arg_25_1 str
 arg_25_2 add
-
 arg_26_0 self
 arg_26_1 str
 arg_26_2 val
-
 arg_27_0 self
 arg_27_1 cat
 arg_27_2 group
 arg_27_3 str
-
 arg_28_0 self
 arg_28_1 cat
 arg_28_2 group
 arg_28_3 str
-
 arg_29_0 self
 arg_29_1 cat
 arg_29_2 group
 arg_29_3 str
-
 arg_30_0 self
 arg_30_1 cat
 arg_30_2 group
 arg_30_3 str
-
 arg_31_0 self
 arg_31_1 id
 var_31_0 profile
-
 arg_32_0 self
 arg_32_1 id
 arg_32_2 profile
-
 arg_33_0 self
 arg_33_1 id
 var_33_0 profile
-
 arg_34_0 self
-
 arg_35_0 self
 arg_35_1 profile_ref
 iter_35_0 index
 iter_35_1 profile
-
 arg_36_0 self
 arg_36_1 device
 arg_36_2 preset
 var_36_0 full_name
-
 arg_37_0 self
 arg_37_1 device
 arg_37_2 model
@@ -251,20 +200,16 @@ arg_37_3 source_preset
 var_37_0 preset
 var_37_1 full_name
 var_37_2 controls
-
 arg_38_0 self
 arg_38_1 preset_ref
 iter_38_0 index
 iter_38_1 preset
-
 arg_39_0 self
 arg_39_1 statistics_name
 var_39_0 statistics
-
 arg_40_0 self
 arg_40_1 statistics_name
 var_40_0 statistics
-
 arg_41_0 self
 arg_41_1 file
 arg_41_2 version
@@ -280,11 +225,9 @@ iter_41_0 index
 iter_41_1 val
 iter_41_2 index
 iter_41_3 val
-
 arg_42_0 self
 
 main.lua
-
 var_0_0 rndTest
 var_0_1 math
 var_0_2 mainUpdate
@@ -311,49 +254,36 @@ var_0_22 mouseClick
 var_0_23 joyButtonPressed
 var_0_24 joyButtonReleased
 var_0_25 suspend
-
 arg_1_0 index
 var_1_0 val
-
 arg_2_0 message
-
 arg_3_0 v
 var_3_1 path
 var_3_0 preload
-
 arg_4_0 time
-
 arg_6_0 w
 arg_6_1 h
 var_6_0 clamped_w
 var_6_1 clamped_h
-
 arg_7_0 v
-
 arg_8_0 value
 arg_8_1 default
-
 arg_10_0 dt
-
 var_11_0 platform
 var_11_1 file_args
 var_11_2 config_file
 var_11_3 f
 var_11_4 v
-
 var_14_0 assetPath
 var_14_1 success
 var_14_2 msg
-
 var_15_0 locale
 var_15_1 language
 var_15_2 dev_mode
 iter_15_0 i
 iter_15_1 v
-
 var_19_0 ok
 var_19_1 sec
-
 var_20_0 developer_account
 var_20_1 devstate
 var_20_2 devstate_new
@@ -361,31 +291,24 @@ var_20_3 account_name
 var_20_4 accountState
 var_20_5 musicState
 var_20_6 inputState
-
 var_22_0 dev_mode
 var_22_1 path
 var_22_2 lobby
 var_22_3 password
 var_22_4 default
-
 arg_24_0 key
 arg_24_1 is_bonus_key
 var_24_0 b
 var_24_1 path
-
 arg_25_0 self
 arg_25_1 text
 var_25_0 replayfilename
-
 arg_26_0 byte
-
 arg_27_0 x
 arg_27_1 y
 arg_27_2 button
 arg_27_3 clickCount
-
 arg_28_0 joy
 arg_28_1 btn
-
 arg_29_0 joy
 arg_29_1 btn
