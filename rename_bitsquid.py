@@ -31,12 +31,13 @@ for root, dirs, files in os.walk(source):
         if not file.endswith(".lua"):
             continue
 
+        print("Reading: " + root + "/" + file)
         source_open = open(root + "/" + file, "r")
         source = source_open.read().replace("\ufeff", "")
         source_open.close()
 
         target_path = source.split("\n", 1)[0].split("/", 1)[1]
-        print(target + "/" + target_path)
+        print("writing: " + target + "/" + target_path)
 
         if not os.path.exists((target + "/" + target_path).rsplit("/", 1)[0]):
             os.makedirs((target + "/" + target_path).rsplit("/", 1)[0])
