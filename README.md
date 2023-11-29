@@ -9,10 +9,10 @@ Editor modifications are based on unpacked Cobalt code from the BitSquid version
 
 For that you will need:  
 
-> [bitsquid_unp](https://web.archive.org/web/20221018164344/https://zenhax.com/download/file.php?id=959&sid=b46f061347c43223468aa896550bd9eb)
-> [luajit-decompiler-v2](https://github.com/marsinator358/luajit-decompiler-v2)
-> truncate_bytes.py
-> rename_bitsquid.py
+> [bitsquid_unp](https://web.archive.org/web/20221018164344/https://zenhax.com/download/file.php?id=959&sid=b46f061347c43223468aa896550bd9eb) (internet archive download)  
+> [luajit-decompiler-v2](https://github.com/marsinator358/luajit-decompiler-v2) (github repo)  
+> truncate_bytes.py (this repo)  
+> rename_bitsquid.py (this repo)  
 
 Process:  
 
