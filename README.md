@@ -1,5 +1,22 @@
 # Co-tools
-Random cobalt tools
+Random cobalt stuff
+
+## Editor modifications
+
+### Preparing the editor
+
+Editor modifications are based on unpacked Cobalt code from the BitSquid version of the game located in `7efe746cbba01385`.  
+
+For that you will need:  
+
+> [bitsquid_unp](https://web.archive.org/web/20221018164344/https://zenhax.com/download/file.php?id=959&sid=b46f061347c43223468aa896550bd9eb)
+> [luajit-decompiler-v2](https://github.com/marsinator358/luajit-decompiler-v2)
+> truncate_bytes.py
+> rename_bitsquid.py
+
+Process:  
+
+- to be documented
 
 For cobalt bitsquid data contained in `7efe746cbba01385`:  
 -first run the file trough `bitsquid_unp.exe`  
