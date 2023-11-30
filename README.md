@@ -42,4 +42,13 @@ python rename_bitsquid.py -s [path to output folder from step 3 / output folder 
 The specified folder should contain all files that were sucessfully decompiled, the before mentioned files that failed thecompiling and any other desired files should be copied into this folder and subfolders.  
 
 #### Running the editor using lua source
-it's 2am when i am writing this so no
+it's 2am when i am writing this so no  
+
+### Alloy
+All files required to run alloy are provided [here](/alloy).  
+- `eng.translations` go into the `translations` folder  
+- `alloy_editor_mod_xx.diff` is applied over a prepared `daisyMoon` folder (using a copy of cobalt is strongly recomended)  
+For linux apply `alloy_editor_mod_xx.diff` by executing the following command in the desired cobalt's folder:
+```
+patch -p0 < [path to alloy_editor_mod_xx.diff]
+```
