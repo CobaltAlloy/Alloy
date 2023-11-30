@@ -12,17 +12,34 @@ For that you will need:
 > [bitsquid_unp](https://web.archive.org/web/20221018164344/https://zenhax.com/download/file.php?id=959&sid=b46f061347c43223468aa896550bd9eb) (internet archive download)  
 > [luajit-decompiler-v2](https://github.com/marsinator358/luajit-decompiler-v2) (github repo)  
 > [truncate_bytes.py](/truncate_bytes.py) (this repo)  
-> [rename_bitsquid.py](/rename_bitsquid.py) (this repo)  
+> [rename_bitsquid.py](/rename_bitsquid.py) (this repo)
+> [python 3](https://www.python.org/downloads/) (can be downloaded here)
 
-Process:  
+#### Getting decompiled lua source
 
-- to be documented
+- First step is unpacking `7efe746cbba01385` done by running `bitsquid_unp.exe`:  
+```
+bitsquid_unp.exe [path to cobalt steam directory (browse files for cobalt in steam) bundle/7efe746cbba01385]
+```
+This results in the unpacked lua bytecode files being places where `bitsquid_unp.exe` was run from.  
+- Second step is removing the trailing 8 bytes from all lua bytecode files and can be done using `truncate_bytes.py` like so:
+```
+python truncate_bytes.py -t [path to unpacked 7efe746cbba01385]
+```
+The script changes the files on the spot so any required backups/files should be copied somwhere else before executing, it also strips leading bytes from all files ending with .lua so tread carefully and execute only once!  
+- Third step is decompiling the bytecode using `luajit-decompiler-v2.exe` like so:
+```
+luajit-decompiler-v2.exe [path to unpacked and ]
+```
+Decompiler creates a folder called `output` for the output files and leaves the input files alone, any files that threw errors while decompiling can be copied from the `daisyMoon` folder within a downloaded cobalt steam repo aquired via running the following command within the steam console:  
+```
+download_depot 357340 357342 4393965309640351424
+```
+- Forth step is running `rename_bitsquid.py` over the files to regain the required virtual folder structure like so:  
+```
+python rename_bitsquid.py -s [path to output folder from step 3 / output folder from luajit-decompiler-v2.exe] -t [path to new output folder]
+```
+The specified folder should contain all files that were sucessfully decompiled, the before mentioned files that failed thecompiling and any other desired files should be copied into this folder and subfolders.  
 
-For cobalt bitsquid data contained in `7efe746cbba01385`:  
--first run the file trough `bitsquid_unp.exe`  
--run `python truncate_bytes.py -t [path to unpacked 7efe746cbba01385]`  
--the script will remove the leading bytes from all .lua files in given folder  
--then run the files trough `luajit-decompiler-v2.exe`  
--lastly to sort the files to folders  
--run `python rename_bitsquid.py -s [path to decompiled lua source] -t [path to output folder]`  
--the output folder should contain the files with the given virtual folder structure  
+#### Running the editor using lua source
+it's 2am when i am writing this so no
