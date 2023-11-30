@@ -13,7 +13,7 @@ For that you will need:
 > [luajit-decompiler-v2](https://github.com/marsinator358/luajit-decompiler-v2) (github repo)  
 > [truncate_bytes.py](/truncate_bytes.py) (this repo)  
 > [rename_bitsquid.py](/rename_bitsquid.py) (this repo)  
-> [python 3](https://www.python.org/downloads/) (can be downloaded here)
+> [python 3](https://www.python.org/downloads/) (can be downloaded here)  
 
 #### Getting decompiled lua source
 
