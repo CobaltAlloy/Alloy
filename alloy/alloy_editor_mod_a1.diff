@@ -1,0 +1,1300 @@
+diff -X exclude -ruN daisyMoon/alloyDependencies.lua moddedDaisyMoon/alloyDependencies.lua
+--- daisyMoon/alloyDependencies.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyDependencies.lua	2023-11-30 02:16:42.007181431 +0100
+@@ -0,0 +1,112 @@
++ALLOY_ITEM_ATTRIBUTES = {}
++ALLOY_ITEM_NAMES = {}
++
++local ALLOY_ITEM_EXPLORERS = {}
++
++function RegisterAlloyItemExplorer(explorer)
++  ALLOY_ITEM_EXPLORERS[#ALLOY_ITEM_EXPLORERS+1] = explorer
++end
++
++hook.add("frameRender", function()
++  for key, value in pairs(ALLOY_ITEM_EXPLORERS) do
++    if value:isVisible() then
++      if value.renderItem then
++        value:renderItem()
++      end
++    else
++      ALLOY_ITEM_EXPLORERS[key] = nil
++    end
++  end
++end)
++
++function UpdateAlloyItemData()
++  ALLOY_ITEM_ATTRIBUTES = {}
++  ALLOY_ITEM_NAMES = {}
++  local item_amount = 0
++  local key_amount = 0
++  for item_name, item_value in pairs(ITEMS) do
++    if item_name then
++      ALLOY_ITEM_NAMES[#ALLOY_ITEM_NAMES+1] = item_name
++      if item_value then
++        for key, value in pairs(item_value) do
++          if value ~= nil or value ~= '' then
++            if ALLOY_ITEM_ATTRIBUTES[key] == nil then
++              ALLOY_ITEM_ATTRIBUTES[key] = {value = 1}
++              key_amount = key_amount + 1
++            elseif ALLOY_ITEM_ATTRIBUTES[key][value] == nil then
++              ALLOY_ITEM_ATTRIBUTES[key][value] = 1
++            else
++              ALLOY_ITEM_ATTRIBUTES[key][value] = ALLOY_ITEM_ATTRIBUTES[key][value] + 1
++            end
++          end
++        end
++      end
++      item_amount = item_amount + 1
++    end
++  end
++  print("Indexed " .. item_amount .. " items and " .. key_amount .. " attributes!")
++end
++
++function AlloyGetDebugFunction(func, max)
++  if type(func) ~= "function" then
++    return nil
++  end
++  local output = {}
++  local t = debug.getinfo(func)
++  local name = t.source:gsub("^@", "")
++  local i = 0
++  for line in io.lines(name) do
++    i=i+1
++    if i >= t.linedefined then
++      if string.len(line) > max then
++      	print(line .. "   is too long")
++      end
++      output[#output+1] = line
++    end
++    if i >= t.lastlinedefined then
++      break
++    end
++  end
++  return output
++end
++
++function AlloyParseTable(table)
++  if type(table) ~= "table" then
++    return nil
++  end
++  local output = {}
++  local index = 1
++  for key, value in pairs(table) do
++    local line = key .. " = "
++    local type = type(value)
++    if type == "nil" then
++    	line = line .. "nil"
++    elseif type == "number" then
++      line = line .. value
++    elseif type == "string" then
++      line = line .. '"' .. value .. '"'
++    elseif type == "boolean" then
++      if value then
++      	line = line .. "True"
++      else
++        line = line .. "False"
++      end
++    elseif type == "table" then
++      line = line .. "{"
++    else
++      line = line .. "type:" .. type
++    end
++    output[index] = line
++    index = index + 1
++    if type == "table" then
++      for nKey, nValue in pairs(AlloyParseTable(value)) do
++      	output[index] = "  " .. nValue
++        index = index + 1
++      end
++    end
++  end
++  return output
++end
++
++dofile("alloy.lua")
++dofile("alloyItem.lua")
+diff -X exclude -ruN daisyMoon/alloyEdit.lua moddedDaisyMoon/alloyEdit.lua
+--- daisyMoon/alloyEdit.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyEdit.lua	2023-11-30 02:16:41.996181464 +0100
+@@ -0,0 +1,206 @@
++AlloyEdit = inherited("AlloyEdit", ManipulatorState)
++
++local DEFAULT_ALLOY_EDIT_STATE = {
++  manipulatorType = "node",
++  appId = "NIL",
++  autoBackups = true,
++  overallZoom = 1
++}
++
++function AlloyEdit:new()
++	local e = instance(self)
++	
++	e.input:setSet("adventure")
++	e:initStateData("alloystate")
++	e:initView(ResourceView:new(), 0.001, 4)
++	
++	e.menuBar = MenuBar:new(e, "alloy")
++	
++	e:addManipulators("nodeCamera", "node")
++	e:loadState(DEFAULT_ALLOY_EDIT_STATE)
++	sprites.requireDefsKey(e, BGS, "whiteGradient")
++
++	UpdateAlloyItemData()
++	
++	return e
++end
++
++function AlloyEdit:getUndoData()
++	return self.alloy
++end
++
++function AlloyEdit:saveUndoData(file, data, meta)
++	data:save(file)
++end
++
++function AlloyEdit:loadUndoData(file, meta)
++	self.manipulator:clearDependencies()
++	file:setRootPath(self.alloy:getPath())
++	
++	local a = Adventure:load(file)
++	
++	if a then
++		a:initGraph()
++		self:setResource(a)
++	end
++end
++
++function AlloyEdit:init()
++	states.get("music"):stopCurrentMusic()
++	self.menuBar:refreshMenuTree()
++	self:finishInit()
++end
++
++function AlloyEdit:finishInit()
++end
++
++function AlloyEdit:enable()
++	self.gui.gui:setVisible(true)
++	self.input:reset()
++	states.get("input"):offerInput("alloyEdit", self.input)
++	
++	if self:getResource() then
++		self:getResource():refresh()
++	end
++end
++
++function AlloyEdit:unpause()
++	self.gui.gui:setVisible(true)
++end
++
++function AlloyEdit:pause()
++	self.gui.gui:setVisible(false)
++end
++
++function AlloyEdit:disable()
++	states.get("input"):retractInput("alloyEdit")
++	self.gui.gui:setVisible(false)
++end
++
++function AlloyEdit:close()
++	self:onStateEvent("onClose")
++	self:disable()
++	self:saveState()
++end
++
++function AlloyEdit:mouseClick(x, y, button, clickCount)
++	self:super().mouseClick(self, x, y, button, clickCount)
++end
++
++function AlloyEdit:keyPressed(key)
++	self.menuBar:checkMenuShortcut(key)
++end
++
++function AlloyEdit:resourcePositionToCanvas(x, y)
++	if self.layer then
++		return self.layer:positionToCanvas(x, y, self.view.camera)
++	else
++		return x, y
++	end
++end
++
++function AlloyEdit:screenPositionToResource(x, y)
++	if self.layer then
++		return self.layer:xToLayer(self.view:xToCamera(window.xToView(x, self.view), self.layer), self.view.camera), self.layer:yToLayer(self.view:yToCamera(window.yToView(y, self.view), self.layer), self.view.camera)
++	else
++		return x, y
++	end
++end
++
++function AlloyEdit:update(time)
++	self:super().update(self, time)
++	self.view:updatePan(self.mouse, time, 500 / self.overallZoom)
++	self:updateZoom(time)
++	self:refreshMouseCoordinates()
++	
++	if not self.mouse.eaten and self.manipulator then
++		self.manipulator:updateInput(self.input, self.mouse, self.mouse.x, self.mouse.y, time)
++		
++		if self.input.esc and not self.input.lastEsc then
++			self.manipulator:reset()
++			
++			if self.manipulator:isTool() then
++				self:restoreManipulator()
++			else
++				self:setManipulator(self.layer:getManipulatorType())
++			end
++		end
++		
++		if self.input.drag then
++			self:setManipulator("nodeCamera")
++		elseif not self.input.drag and self.input.lastDrag then
++			self:restoreManipulator()
++		end
++	end
++	
++	if self.layer then
++		self.layer:updateEdittime(time)
++	end
++	
++	self:refreshMouseCoordinates()
++	self.view:update(time)
++	self:super().postUpdate(self, time)
++end
++
++function AlloyEdit:stopRoutines()
++	if self.alloy then
++		self.alloy:stopRoutines()
++	end
++end
++
++function AlloyEdit:getResource()
++	return self.alloy
++end
++
++function AlloyEdit:onNewResource(res)
++	res:initEdit(res)
++end
++
++function AlloyEdit:setResource(u)
++	self.alloy = u
++	
++	self.view:setResource(u)
++	self:setView(self.view)
++	
++	self.layer = self.alloy.graph
++	self.view.camera.x = 0
++	self.view.camera.y = 0
++	
++	self:finishInit()
++end
++
++function AlloyEdit:onSaved(res)
++	app.setLastResource(res)
++	
++	if self.autoBackups then
++		resources.backup("alloy", res, self)
++	end
++end
++
++function AlloyEdit:load(res)
++	self:onStateEvent("onLoad", res)
++	self:setResource(res)
++	app.setLastResource(res)
++end
++
++function AlloyEdit:render()
++	if self.layer then
++		self.layer:renderRelations(self.view.camera, 32, 200, 255, 200)
++	end
++	
++	canvas.setToRef()
++	
++	if self.manipulator then
++		self.manipulator:render(self.input, self.mouse, self.view.camera)
++	end
++	
++	canvas.setToWindow()
++	
++	local col = self.manipulator:isTargeting() and COLORS.darkened or COLORS.white
++	
++	if self.view then
++		self.view:renderEditor(255, col.r, col.g, col.b, self.manipulator, self.input, self.mouse)
++	end
++	
++	self:super().postRender(self)
++end
+diff -X exclude -ruN daisyMoon/alloyItem.lua moddedDaisyMoon/alloyItem.lua
+--- daisyMoon/alloyItem.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyItem.lua	2023-11-30 02:16:42.008181428 +0100
+@@ -0,0 +1,73 @@
++AlloyItem = inherited("AlloyItem", GraphResource)
++
++resources.setClass("alloyItem", AlloyItem)
++
++AlloyItem.versions = {
++  current = 1
++}
++
++function AlloyItem:new(owner)
++  local self = instance(self)
++
++  self:setType("alloyItem")
++  self.owner = owner
++
++  serialization.initParameters(self:getParameters(), self)
++
++  return self
++end
++
++AlloyItem.itemDefinition = {
++  name = "",
++  tags = {}
++}
++
++function AlloyItem:getDefinition()
++	return self.itemDefinition
++end
++
++function AlloyItem:updateDefinition(itemDefinition)
++	self.itemDefinition = itemDefinition
++end
++
++AlloyItem.serialization = {
++  parametersOrder = {
++    "edit",
++    "item",
++  },
++  parameters = {
++    edit = {
++      type = "instance",
++      spawn = function(self, values)
++      	_editDialogs.createAlloyEditItemDialog("Edit item", self:getDefinition(), self)
++      end
++    },
++    item = {
++      row = 1,
++      label = "",
++      type = "text"
++    }
++  }
++}
++
++function AlloyItem:register(file)
++	file:register(self, true)
++
++  serialization.registerParameters(file, self:getParameters(), self)
++end
++
++function AlloyItem:save(file)
++  file:writeInt(self.versions.current)
++  file:writeInstance(self)
++
++  serialization.saveParameters(file, self:getParameters(), self)
++end
++
++function AlloyItem:load(file, owner)
++	local version = file:readInt()
++	local self = file:readReference()
++	
++	serialization.loadParameters(file, self)
++	
++  return self
++end
+diff -X exclude -ruN daisyMoon/alloy.lua moddedDaisyMoon/alloy.lua
+--- daisyMoon/alloy.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloy.lua	2023-11-30 02:16:42.007181431 +0100
+@@ -0,0 +1,178 @@
++Alloy = inherited("Alloy", GraphResource)
++Alloy.versions = {
++  current = 1
++}
++
++resources.setClass("alloy", Alloy)
++
++function Alloy:new()
++  local self = instance(self)
++
++  self:setType("alloy")
++  serialization.initParameters(self:getParameters(), self)
++
++  return self
++end
++
++Alloy.serialization = {
++  parametersOrder = {
++    "displayName",
++    "description",
++    "author",
++		"items"
++  },
++  parameters = {
++    displayName = {
++      index = "name",
++			type = "localizedText"
++    },
++    description = {
++      index = "description",
++			type = "localizedText"
++    },
++    author = {
++      type = "text"
++    },
++		items = {
++			type = "children",
++			spawn = function(self, values)
++      	return AlloyItem:new(self)
++      end
++		}
++  },
++  header = {},
++  contents = {
++		dummyContent = {
++			type = "text"
++		}
++	}
++}
++
++function Alloy:populateInfo(info)
++	info.author = self.author or info.author
++	info.name = self.displayName or info.name
++	info.description = self.description or info.description
++end
++
++function Alloy:register(file)
++  if file:register(self, true) then
++    if self.graph then
++      self.graph:register(file)
++    end
++
++    self:registerRecursiveChildren(file)
++
++    if self:getParameters() then
++      serialization.registerParameters(file, self:getParameters(), self)
++    end
++
++    file:registerData(self, "header", true)
++    file:registerData(self, "contents")
++  end
++end
++
++function Alloy:saveHeader(file)
++	file:writeInt(self.versions.current)
++  self:register(file)
++  file:writeRegister()
++  file:writeInstance(self)
++  file:writeData(self, "header", true)
++
++  if self:getParameters() then
++  	file:writeBoolean(true)
++    serialization.saveParameters(file, self:getParameters(), self)
++  else
++    file:writeBoolean(false)
++  end
++end
++
++function Alloy:saveContents(file)
++	file:writeData(self, "contents")
++end
++
++function Alloy:saveEdit(file, version)
++	if self.graph then
++    file:writeBoolean(true)
++    self.graph:save(file)
++  else
++    file:writeBoolean(false)
++  end
++end
++
++function Alloy:save(file)
++	self:saveHeader(file)
++  self:saveContents(file)
++  self:saveEdit(file)
++
++  return true
++end
++
++function Alloy:loadHeader(file)
++  local version = file:readInt()
++
++  file:readRegister()
++
++  local self = file:readReference() or instance(self)
++
++  file:readData(self)
++
++  local hasParams = file:readBoolean()
++
++  if hasParams then
++    serialization.loadParameters(file, self, self:getParameters())
++  end
++
++  return self, version
++end
++
++function Alloy:loadContents(file, version, yieldStart)
++	self:initGraphTier()
++  file:readData(self)
++  self:setType(self.type)
++end
++
++function Alloy:loadEdit(file, version, yieldStart)
++	local hasGraph = file:readBoolean()
++	
++	if hasGraph then
++		self.graph = Layer:load(file, self, yieldStart)
++		
++		self.graph:verifyNodes()
++	end
++	
++	self:loadChildTree()
++end
++
++function Alloy:load(file, yieldStart)
++	local u, version = self:loadHeader(file)
++	
++	u:loadFolderContents(yieldStart)
++	u:loadContents(file, version, yieldStart)
++	
++	return u, "OK"
++end
++
++function Alloy:loadFolderContents(yieldStart, edit)
++end
++
++function Alloy:onLoaded()
++	if self.graph then
++		self:initGraph()
++	end
++	
++	if self:localizeExists("description") then
++		self.description = self:localize("description")
++	end
++end
++
++function Alloy:refresh()
++	self:loadFolderContents(nil, true)
++end
++
++function Alloy:getLocalizedName()
++	return self.displayName or self.name
++end
++
++function Alloy:getBooker()
++	return self
++end
+diff -X exclude -ruN daisyMoon/defaultConfigs.lua moddedDaisyMoon/defaultConfigs.lua
+--- daisyMoon/defaultConfigs.lua	2023-11-30 02:17:06.624108474 +0100
++++ moddedDaisyMoon/defaultConfigs.lua	2023-11-30 02:16:42.447180127 +0100
+@@ -128,6 +128,7 @@
+ 	spriteListPath = "NIL",
+ 	team = "NIL",
+ 	mod = "NIL",
++	alloy = "NIL",
+ 	slot = "",
+ 	talk = "NIL",
+ 	account = "NIL"
+diff -X exclude -ruN daisyMoon/editDialogs.lua moddedDaisyMoon/editDialogs.lua
+--- daisyMoon/editDialogs.lua	2023-11-30 02:17:06.614108503 +0100
++++ moddedDaisyMoon/editDialogs.lua	2023-11-30 02:16:42.447180127 +0100
+@@ -5688,3 +5688,342 @@
+ 	dialog:sortRiver(true, 5, 5)
+ 	dialog:centerOnParent()
+ end
++
++function editDialogs.createAlloyItemExplorer(title)
++	local dialog = gui.createComponent("dframe")
++
++	--for key, value in pairs(dialog) do
++	--	print(key)
++	--end
++
++	function dialog:onHide()
++		editDialogs.clearCurrent()
++	end
++
++	local itemName = ""
++	local tagName = ""
++
++-- not the best implementation but it works for now
++	function dialog:renderItem()
++		local item = ITEMS[itemName]
++		local dx, dy, dw, dh = self:getRelativePosition()
++		local ix, iy, iw, ih = dx + dw, dy, dh / 2, dh
++
++		if item then
++			video.renderSpriteRectangle(ix - 1, iy, iw + 1, ih, 255, 219, 221, 222)
++			video.renderSpriteRectangle(ix, iy + 1, iw - 1, ih - 2, 255, 80, 90, 100)
++			if item.iconSprite then
++				video.renderSpriteState(item.iconSprite, ix + iw / 2, iy + iw / 2, 1, 0, 255, 255, 255, 255, false)
++			end
++			if item.sprite then
++				video.renderSpriteState(item.sprite, ix + iw / 2, iy + iw / 2 + iw, 1, 0, 255, 255, 255, 255, false)
++			end
++			if item.customSprites then
++				for name, sprite in pairs(item.customSprites) do
++					video.renderSpriteState(sprite, ix + iw / 2, iy + iw / 2 + iw, 1, 0, 255, 255, 255, 255, false)
++				end
++			end
++		end
++	end
++
++	dialog:setText(WChar(title))
++
++	dialog.layout = gui.createComponent("layout", dialog)
++
++	local itemList = gui.createComponent("listbox", dialog)
++
++	itemList:setRelativePosition(5, 50, 200, 200)
++
++	local itemNames = table.copy(ALLOY_ITEM_NAMES)
++	table.sort(itemNames)
++	for i = 1, #itemNames do
++  	itemList:addTextItem(WChar(itemNames[i]))
++  end
++	itemList:setSelected(0)
++	itemList:setSelectable(true)
++
++	local tagList = gui.createComponent("listbox", dialog)
++
++	tagList:setRelativePosition(210, 50, 150, 200)
++
++	local dataList = gui.createComponent("listbox", dialog)
++
++	dataList:setRelativePosition(365, 50, 350, 200)
++
++	local dataField = gui.createComponent("editbox", dialog)
++
++	dataField:setRelativePosition(365, 25, 340, 20)
++
++	function dataField:update()
++  	local value = ITEMS[itemName][tagName]
++		local type = type(value)
++		self:setText(WChar(type))
++		dataList:clear()
++		if type == "number" then
++			dataList:addTextItem(WChar(value))
++		elseif type == "string" then
++			dataList:addTextItem(WChar('"' .. value .. '"'))
++		elseif type == "boolean" then
++			if value then
++				dataList:addTextItem(WChar("True"))
++			else
++				dataList:addTextItem(WChar("False"))
++			end
++		elseif type == "table" then
++			for nKey, nValue in pairs(AlloyParseTable(value)) do
++				dataList:addTextItem(WChar(nValue))
++			end
++		elseif type == "function" then
++			for nKey, nValue in pairs(AlloyGetDebugFunction(value, 70)) do
++				dataList:addTextItem(WChar(nValue))
++			end
++		else
++			dataList:addTextItem(WChar("Unrecognised data structure"))
++		end
++  end
++
++	local itemField = gui.createComponent("editbox", dialog)
++
++	itemField:setSelectable(true)
++	itemField:setRelativePosition(5, 25, 190, 20)
++
++	function itemField:onApply()
++		local name = self:getText():asString()
++		itemName = name
++		tagList:update()
++  end
++
++	function itemList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++
++		itemField:setText(WChar(name))
++		itemName = name
++		tagList:update()
++	end
++
++	local tagField = gui.createComponent("editbox", dialog)
++
++	tagField:setSelectable(true)
++	tagField:setRelativePosition(210, 25, 140, 20)
++	
++	function tagField:onApply()
++		local name = self:getText():asString()
++		tagName = name
++		dataField:update()
++  end
++
++	function tagList:update()
++		self:clear()
++		tagField:setText(WChar(""))
++		local item = itemName
++		if item then
++  		local itemTags = ITEMS[item]
++			if itemTags then
++				local tags = {}
++    		local i = 1
++				for key, value in pairs(itemTags) do
++					tags[i] = key
++					i = i+1
++      	end
++				table.sort(tags)
++				for key, value in pairs(tags) do
++      		self:addTextItem(WChar(value))
++        end
++    	end
++		end
++		self:setSelected(0)
++		self:setSelectable(self:getItemCount() > 0)
++  end
++
++	function tagList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++
++		tagField:setText(WChar(name))
++		tagName = name
++		dataField:update()
++	end
++
++	dialog:setRelativePosition(0, 0, 710, 260)
++	dialog:centerOnParent()
++
++	tagList:update()
++
++	return dialog
++end
++
++function editDialogs.createAlloyEditItemDialog(title, item, callbackObject)
++	local dialog = gui.createComponent("dframe")
++
++	function dialog:onHide()
++		editDialogs.clearCurrent()
++	end
++
++	dialog:setText(WChar(title))
++
++	dialog.layout = gui.createComponent("layout", dialog)
++
++	dialog.item = table.copy(item or {})
++
++	local nameLabel = gui.createComponent("label", dialog)
++
++	--nameLabel:setRiver("left")
++	nameLabel:setRelativePosition(210, 30, 150, 20)
++
++	function nameLabel:update()
++		if dialog.item.name == "" then
++			nameLabel:setText(WChar("No Item selected!"))
++		else
++			self:setText(WChar(dialog.item.name))
++		end
++	end
++
++	local nameField = gui.createComponent("editbox", dialog)
++
++	nameField:setSelectable(true)
++	--nameField:setRiver("br left")
++	nameField:setRelativePosition(5, 25, 190, 20)
++
++	local tagField = gui.createComponent("editbox", dialog)
++
++	tagField:setSelectable(true)
++	tagField:setRelativePosition(365, 255, 140, 20)
++
++	local nameList = gui.createComponent("listbox", dialog)
++
++	nameList:setSelectable(true)
++	--nameList:setRiver("br left")
++	nameList:setRelativePosition(5, 50, 200, 200)
++
++	local itemNames = table.copy(ALLOY_ITEM_NAMES)
++	table.sort(itemNames)
++	for i = 1, #itemNames do
++  	nameList:addTextItem(WChar(itemNames[i]))
++  end
++
++	local itemTagList = gui.createComponent("listbox", dialog)
++
++	--tagList:setRiver("middle")
++	itemTagList:setRelativePosition(210, 50, 150, 200)
++
++	function itemTagList:onChange()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++		print("todo add this functionality")
++  end
++
++	function itemTagList:update()
++		self:clear()
++		if dialog.item then
++  		local itemTags = dialog.item.tags
++			if itemTags then
++				local tags = {}
++    		local i = 1
++				for key, value in pairs(itemTags) do
++					tags[i] = key
++					i = i+1
++      	end
++				table.sort(tags)
++				for key, value in pairs(tags) do
++      		self:addTextItem(WChar(value))
++        end
++    	end
++		end
++		self:setSelected(0)
++		self:setSelectable(self:getItemCount() > 0)
++  end
++
++	local tagList = gui.createComponent("listbox", dialog)
++
++	tagList:setRelativePosition(365, 50, 150, 200)
++
++	function tagList:update()
++		self:clear()
++		local tags = {}
++		local i = 1
++		for key, value in pairs(ALLOY_ITEM_ATTRIBUTES) do
++			if dialog.item.tags[key] == nil then
++				tags[i] = key
++				i = i+1
++			end
++		end
++		table.sort(tags)
++		for key, value in pairs(tags) do
++				self:addTextItem(WChar(value))
++    end
++		self:setSelected(0)
++		self:setSelectable(self:getItemCount() > 0)
++  end
++
++	function tagList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++		if not dialog.item.tags[name] then
++			dialog.item.tags[name] = ""
++		end
++		self:update()
++		itemTagList:update()
++	end
++
++	function itemTagList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++		dialog.item.tags[name] = nil
++		self:update()
++		tagList:update()
++	end
++	
++	local function loadItem(itemName)
++  	local itemTags = ITEMS[itemName]
++		if itemTags then
++  		for key, value in pairs(itemTags) do
++     		dialog.item.tags[key] = value
++      end
++    end
++		nameLabel:update()
++		itemTagList:update()
++		tagList:update()
++	end
++
++	function nameField:onApply()
++		local name = self:getText():toString()
++  	dialog.item.name = name
++		loadItem(name)
++  end
++
++	function tagField:onApply()
++		local tag = self:getText():toString()
++		dialog.item.tags[tag] = ""
++		itemTagList:update()
++		tagList:update()
++	end
++	
++	function nameList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++		nameField:setText(WChar(name))
++		dialog.item.name = name
++		loadItem(name)
++  end
++
++	local applyButton = gui.createComponent("button", dialog)
++	
++	function applyButton:onClick()
++		if dialog.item.name == "" or string.find(dialog.item.name, " ")  then
++			return nil
++		end
++		callbackObject:updateDefinition(dialog.item)
++	end
++
++	applyButton:setText(WChar("Apply"))
++	--applyButton:setRiver("br right")
++	applyButton:setRelativePosition(385, 25, 50, 20)
++
++	--dialog.layout:sortRiver(true, 5, 5)
++	--dialog:sortRiver(true, 5, 5)
++	dialog:setRelativePosition(0, 0, 515, 280)
++	dialog:centerOnParent()
++
++	loadItem("")
++end
+diff -X exclude -ruN daisyMoon/editMenuBar.lua moddedDaisyMoon/editMenuBar.lua
+--- daisyMoon/editMenuBar.lua	2023-11-30 02:17:06.630108456 +0100
++++ moddedDaisyMoon/editMenuBar.lua	2023-11-30 02:16:42.447180127 +0100
+@@ -2436,7 +2436,112 @@
+ 		}
+ 	}
+ }
++-- alloy entry tree
++TREES.alloy = {
++	{
++		name = "File",
++		options = {
++			{},
++			{
++				shortcut = 78,
++				name = "New (Ctrl+N)",
++				shortcutOperator = 17,
++				action = function(b)
++					resources.new("alloy", b.state)
++				end
++			},
++			{
++				shortcut = 79,
++				name = "Open (Ctrl+O)",
++				shortcutOperator = 17,
++				action = function(b)
++					resources.open("alloy", b.state)
++				end
++			},
++			{},
++			{
++				shortcut = 83,
++				name = "Save (Ctrl+S)",
++				shortcutOperator = 17,
++				action = function(b)
++					local ok, msg = resources.save("alloy", b.state.alloy, b.state, true)
+ 
++					if msg then
++						b.state:print(msg)
++					end
++				end
++			},
++			{
++				name = "Save As...",
++				action = function(b)
++					if b.state.alloy then
++						resources.saveAs("alloy", b.state.alloy, b.state, true)
++
++					return true
++					else
++						b.state:print("No Alloy to save")
++						return false
++					end
++				end
++			},
++			{},
++			{
++				shortcut = 112,
++				name = "Close Editor (F1)",
++				action = function(b)
++					app.switchMode("devmenu")
++				end
++			},
++			{},
++			{
++				name = "Exit",
++				action = function(b)
++					daisy.exitGame()
++				end
++			}
++		}
++	},
++	{
++		name = "Edit",
++		options = {
++			{},
++			{
++				shortcut = 90,
++				name = "Undo (Ctrl+Z)",
++				shortcutOperator = 17,
++				action = function(b)
++					return b.state:undoBack()
++				end
++			},
++			{
++				shortcut = 89,
++				name = "Redo (Ctrl+Y)",
++				shortcutOperator = 17,
++				action = function(b)
++					return b.state:undoForward()
++				end
++			},
++			{},
++			{
++				shortcut = 82,
++				name = "Reload item data (Shift+R)",
++				shortcutOperator = 16,
++				action = function (b)
++        	UpdateAlloyItemData()
++        end
++			},
++			{
++				shortcut = 73,
++				name = "Open item explorer (Shift+I)",
++				shortcutOperator = 16,
++				action = function(b)
++        	RegisterAlloyItemExplorer(_editDialogs.createAlloyItemExplorer("Item explorer"))
++        end
++			}
++		}
++	}
++}
++-- end of alloy editor tree
+ local mods_menu = {
+ 	name = "Mods",
+ 	options = {
+@@ -2612,7 +2717,16 @@
+ 					app.switchMode("talk")
+ 				end
+ 			},
+-			{},
++			{}, -- custom menus
++			{
++				shortcut = 114,
++				name = "Alloy Editor (CTRL+F3)",
++				shortcutOperator = 17,
++				action = function (b)
++        	app.switchMode("alloy")
++        end
++			},
++			{}, -- end of custom menus
+ 			{
+ 				name = "Exit",
+ 				action = function(b)
+diff -X exclude -ruN daisyMoon/gameDependencies.lua moddedDaisyMoon/gameDependencies.lua
+--- daisyMoon/gameDependencies.lua	2023-11-30 02:17:06.625108471 +0100
++++ moddedDaisyMoon/gameDependencies.lua	2023-11-30 02:16:42.088181191 +0100
+@@ -174,3 +174,4 @@
+ dofile("sorting.lua")
+ dofile("actionDefinitions.lua")
+ dofile("mods.lua")
++dofile("alloyDependencies.lua")
+diff -X exclude -ruN daisyMoon/graphNode.lua moddedDaisyMoon/graphNode.lua
+--- daisyMoon/graphNode.lua	2023-11-30 02:17:06.624108474 +0100
++++ moddedDaisyMoon/graphNode.lua	2023-11-30 02:16:42.111181123 +0100
+@@ -110,6 +110,13 @@
+ 		}
+ 	}
+ }
++GRAPH_NODES.alloy = {
++	class = "Alloy",
++	icon = "",
++	resource = true,
++	children = {},
++	lists = {}
++}
+ GRAPH_NODES.adventure = {
+ 	class = "Adventure",
+ 	icon = "iconAdventure",
+diff -X exclude -ruN daisyMoon/mainApp.lua moddedDaisyMoon/mainApp.lua
+--- daisyMoon/mainApp.lua	2023-11-30 02:17:06.622108480 +0100
++++ moddedDaisyMoon/mainApp.lua	2023-11-30 02:16:42.084181203 +0100
+@@ -856,7 +856,8 @@
+ 	mod = true,
+ 	galaxy = true,
+ 	talk = true,
+-	asset = true
++	asset = true,
++	alloy = true,
+ }
+ 
+ function app.isModeEditor(mode)
+@@ -871,9 +872,10 @@
+ 	"world",
+ 	"mod",
+ 	"asset",
++	"alloy",
+ 	"stageSet",
+ 	"talk",
+-	"team"
++	"team",
+ }
+ 
+ function app.disableEditStates()
+@@ -900,6 +902,8 @@
+ 		dofile("stageEdit.lua")
+ 		dofile("worldEdit.lua")
+ 		dofile("modEdit.lua")
++		dofile("alloyEdit.lua")
++		dofile("asset.lua")
+ 		dofile("stageSetEdit.lua")
+ 		dofile("adventureEdit.lua")
+ 		dofile("talkEdit.lua")
+@@ -1173,6 +1177,12 @@
+ 			
+ 			states.disable("asset")
+ 		end
++
++		if not states.get("alloy") then
++			local al = states.addNewOfClass(AlloyEdit, "alloy")
++
++			states.disable("alloy")
++		end
+ 		
+ 		if states.get("edit") and states.isEnabled("edit") then
+ 			states.disable("edit")
+@@ -1211,6 +1221,24 @@
+ 		states.destroy("game")
+ 		app.disableEditStatesExcept("galaxy")
+ 		states.enable("galaxy")
++	elseif toMode == "alloy" then
++		app.verifyEditors()
++		states.enable("input")
++		states.get("music"):stopCurrentMusic()
++		
++		if not states.get("alloy") then
++			local al = states.addNewOfClass(AlloyEdit, "alloy")
++
++			if _devState.alloy and _devState.alloy ~= "" then
++				resources.load("alloy", _devState.alloy, al, true)
++			end
++
++			states.disable("alloy")
++		end
++		states.set_mouse_visible_locked("alloy", true, false)
++		states.destroy("game")
++		app.disableEditStatesExcept("alloy")
++		states.enable("alloy")
+ 	elseif toMode == "game" then
+ 		app.runtime.showMouse = false
+ 		
+diff -X exclude -ruN daisyMoon/mainConstants.lua moddedDaisyMoon/mainConstants.lua
+--- daisyMoon/mainConstants.lua	2023-11-30 02:17:06.624108474 +0100
++++ moddedDaisyMoon/mainConstants.lua	2023-11-30 02:16:42.084181203 +0100
+@@ -207,6 +207,19 @@
+ 		r = 130
+ 	}
+ }
++RESOURCES.alloy = {
++	variable = "alloy",
++	editor = "alloy",
++	localization = true,
++	meta = "alloy",
++	list = "alloys",
++	folder = "alloys",
++	color = {
++		g = 32,
++		b = 128,
++		r = 128
++	}
++}
+ PREFIXES = {
+ 	slot = "slot"
+ }
+@@ -247,6 +260,7 @@
+ 	workshop = "workshop",
+ 	ircuser = "irc",
+ 	mod = "mods",
++	alloy = "alloys",
+ 	betstats = "irc_stats",
+ 	slot = "slots",
+ 	log = "logs",
+diff -X exclude -ruN daisyMoon/main.lua moddedDaisyMoon/main.lua
+--- daisyMoon/main.lua	2023-11-30 02:17:06.629108459 +0100
++++ moddedDaisyMoon/main.lua	2023-11-30 02:16:42.061181271 +0100
+@@ -73,7 +73,8 @@
+ local math = math
+ 
+ sorting = {}
+-app.developerMode = daisy.isDeveloperModeEnabled()
++--app.developerMode = daisy.isDeveloperModeEnabled()
++app.developerMode = true
+ 
+ dofile("gameDependencies.lua")
+ 
+diff -X exclude -ruN daisyMoon/quickmenu.lua moddedDaisyMoon/quickmenu.lua
+--- daisyMoon/quickmenu.lua	2023-11-30 02:17:06.621108483 +0100
++++ moddedDaisyMoon/quickmenu.lua	2023-11-30 02:16:42.145181022 +0100
+@@ -33,7 +33,6 @@
+ 
+ local FTexts = {
+ 	"hub",
+-	"adventure",
+ 	"mode",
+ 	"asset",
+ 	"set",
+@@ -43,9 +42,19 @@
+ 	"world",
+ 	"mod"
+ }
++local FCtrlTexts = {
++	"adventure",
++	"",
++	"alloy",
++	"",
++	"",
++	"",
++	"",
++	"team",
++	"talk"
++}
+ local Fbuttons = {
+ 	"F1",
+-	"CTRL+F1",
+ 	"F2",
+ 	"F3",
+ 	"F4",
+@@ -58,9 +67,9 @@
+ local buttons = {
+ 	public = {
+ 		1,
+-		6,
+-		8,
+-		10
++		7,
++		9,
++		11
+ 	},
+ 	dev = {
+ 		1,
+@@ -72,8 +81,18 @@
+ 		7,
+ 		8,
+ 		9,
+-		10
+-	}
++	},
++}
++local keys = {
++		112,
++		113,
++		114,
++		115,
++		116,
++		117,
++		118,
++		119,
++		120,
+ }
+ 
+ function QuickMenu:render()
+@@ -82,11 +101,13 @@
+ 		
+ 		for b = 1, #buttons[self.fmenu] do
+ 			local i = buttons[self.fmenu][b]
++			local k = keys[b]
+ 			local x = (canvas.w - wi) * 0.5 + (b - 0.75) * wi / #buttons[self.fmenu]
+-			local a = daisy.isKeyPressed(111 + i) and 255 or 80
++			local a = daisy.isKeyPressed(k) and 255 or 80
+ 			
+-			video.renderShadowedTextSprites(Fbuttons[i], x, canvas.h - 30, 1, "small", a, 196, 196, 196, nil, 0.75)
+-			video.renderShadowedTextSprites(FTexts[i], x, canvas.h - 15, 1, "small", a, 255, 255, 255, nil, 0.75)
++			video.renderShadowedTextSprites(Fbuttons[i], x, canvas.h - 45, 1, "small", a, 196, 196, 196, nil, 0.75)
++			video.renderShadowedTextSprites(FTexts[i], x, canvas.h - 30, 1, "small", a, 255, 255, 255, nil, 0.75)
++			video.renderShadowedTextSprites(FCtrlTexts[i], x, canvas.h - 15, 1, "small", a, 255, 255, 255, nil, 0.75)
+ 		end
+ 	end
+ end

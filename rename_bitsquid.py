@@ -32,7 +32,7 @@ for root, dirs, files in os.walk(source):
             continue
 
         print("Reading: " + root + "/" + file)
-        source_open = open(root + "/" + file, "r")
+        source_open = open(root + "/" + file, "r", encoding="utf-8")
         source = source_open.read().replace("\ufeff", "")
         source_open.close()
 
