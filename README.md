@@ -48,7 +48,7 @@ it's 2am when i am writing this so no
 All files required to run alloy are provided [here](/alloy).  
 - `eng.translations` go into the `translations` folder  
 - `alloy_editor_mod_xx.diff` is applied over a prepared `daisyMoon` folder (using a copy of cobalt is strongly recomended)  
-For linux apply `alloy_editor_mod_xx.diff` by executing the following command in the desired cobalt's folder:
+For linux apply `alloy_editor_mod_x_x_x.diff` by executing the following command in the desired cobalt's folder:
 ```
-patch -p0 < [path to alloy_editor_mod_xx.diff]
+patch -p0 < [path to alloy_editor_mod_x_x_x.diff]
 ```
