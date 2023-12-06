@@ -42,9 +42,16 @@ python rename_bitsquid.py -s [path to output folder from step 3 / output folder 
 The specified folder should contain all files that were sucessfully decompiled, the before mentioned files that failed thecompiling and any other desired files should be copied into this folder and subfolders.  
 
 #### Running the editor using lua source
-it's 2am when i am writing this so no  
+First either make a copy of cobalt just for running a modified editor or backup your cobalt files.  
+Open the desired cobalt's files and copy the contents of cobalt's source `daisyMoon` directory into the desired cobalt's one.  
+Run the desired cobalt's `cobaltDM.exe` through steam as a non-steam game.  
+Optionally create `steam_appid.txt` in the desired cobalt's directory, the created file should look like this:  
+```
+357340
+```
 
 ### Alloy
+#### Installing
 All files required to run alloy are provided [here](/alloy).  
 - `eng.translations` go into the `translations` folder  
 - `alloy_editor_mod_xx.diff` is applied over a prepared `daisyMoon` folder (using a copy of cobalt is strongly recomended)  
@@ -52,3 +59,6 @@ For linux apply `alloy_editor_mod_x_x_x.diff` by executing the following command
 ```
 patch -p0 < [path to alloy_editor_mod_x_x_x.diff]
 ```
+After attempting to save an alloy for the first time the game should automatically create a folder called `alloys` within its directory, put any desired alloys there, the menus should explain the rest.  
+#### Quickmenu
+Columns still work as before, the top row is accesed without any modifiers, the second row is accesed while holding `CTRL`.
