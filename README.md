@@ -29,7 +29,7 @@ python truncate_bytes.py -t [path to unpacked 7efe746cbba01385]
 The script changes the files on the spot so any required backups/files should be copied somwhere else before executing, it also strips leading bytes from all files ending with .lua so tread carefully and execute only once!  
 - Third step is decompiling the bytecode using `luajit-decompiler-v2.exe` like so:
 ```
-luajit-decompiler-v2.exe [path to unpacked and ]
+luajit-decompiler-v2.exe [path to unpacked and truncated files]
 ```
 Decompiler creates a folder called `output` for the output files and leaves the input files alone, any files that threw errors while decompiling can be copied from the `daisyMoon` folder within a downloaded cobalt steam repo aquired via running the following command within the steam console:  
 ```
