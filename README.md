@@ -16,7 +16,10 @@ For that you will need:
 > [python 3](https://www.python.org/downloads/) (can be downloaded here)  
 
 #### Getting decompiled lua source
+##### Option 1: Download from Cobalt archive
+The decompiled source can be found at the [Cobalt archive google drive folder](https://drive.google.com/drive/folders/10Tw1c530qnA5l3P6u1jRyzI9fa3sEWz5?usp=drive_link)
 
+##### Option 2: Unpacking and decompiling
 - First step is unpacking `7efe746cbba01385` done by running `bitsquid_unp.exe`:  
 ```
 bitsquid_unp.exe [path to cobalt steam directory (browse files for cobalt in steam) bundle/7efe746cbba01385]
