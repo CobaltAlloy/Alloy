@@ -60,5 +60,9 @@ For linux apply `alloy_editor_mod_x_x_x.diff` by executing the following command
 patch -p0 < [path to alloy_editor_mod_x_x_x.diff]
 ```
 After attempting to save an alloy for the first time the game should automatically create a folder called `alloys` within its directory, put any desired alloys there, the menus should explain the rest.  
+If the previous command returns different line endings error on unix execute this:  
+```
+find daisyMoon/ -type f -name '*.lua' -exec dos2unix '{}' +
+```
 #### Quickmenu
 Columns still work as before, the top row is accesed without any modifiers, the second row is accesed while holding `CTRL`.
