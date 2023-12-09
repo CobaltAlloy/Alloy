@@ -1,5 +1,7 @@
 # Alloy
 
+<img src="https://raw.githubusercontent.com/Creeper-boop/Alloy/master/assets/Alloy-logo.svg" width="172px" heigth="172px">
+
 Alloy is a modding toolkit for Cobalt, built to be as unrestrictive as possible.
 
 Using Alloy, modders create "alloys", which can change how the game behaves, add new items, weapons or expand the game to their heart's content, all using an in-game editor and lua scripting.
