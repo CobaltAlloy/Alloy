@@ -115,4 +115,4 @@ Alloys are saved to and loaded from that folder.
 
 ### Quickmenu
 
-Columns in the quickmenu are the same, the top row is accesed without any modifiers, the bottom row is accessed by the pressing `CTRL` + the usual key.
+Columns in the quickmenu are the same, the top row is accesed without any modifiers, the bottom row is accessed by pressing `CTRL` + the usual key.
