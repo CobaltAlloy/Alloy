@@ -10,19 +10,19 @@ Using Alloy, modders create "alloys", which can change how the game behaves, add
 
 Alloy is based on unpacked Cobalt source code from the BitSquid version of the game, located in `7efe746cbba01385`.  
 
-To prepare the editor, you will need:  
-
-> [Bitsquid unpacker (bitsquid_unp)](https://web.archive.org/web/20221018164344/https://zenhax.com/download/file.php?id=959&sid=b46f061347c43223468aa896550bd9eb) (internet archive download)  
-> [Lua JIT decompiler (luajit-decompiler-v2)](https://github.com/marsinator358/luajit-decompiler-v2) (github repo)  
-> [truncate_bytes.py](/truncate_bytes.py) (this repo)  
-> [rename_bitsquid.py](/rename_bitsquid.py) (this repo)  
-> [Python 3](https://www.python.org/downloads/)
-
 #### Getting decompiled lua source
 ##### Option 1: Download from the Cobalt archive
 If you don't want to locally decompile, a version of the decompiled source can be found at the [Cobalt archive Google drive folder](https://drive.google.com/drive/folders/10Tw1c530qnA5l3P6u1jRyzI9fa3sEWz5?usp=drive_link)
 
 ##### Option 2: Unpacking and decompiling locally
+
+To unpack and decompile, you will need:  
+
+- [Bitsquid unpacker (bitsquid_unp)](https://web.archive.org/web/20221018164344/https://zenhax.com/download/file.php?id=959&sid=b46f061347c43223468aa896550bd9eb) (internet archive download)
+- [Lua JIT decompiler (luajit-decompiler-v2)](https://github.com/marsinator358/luajit-decompiler-v2) (github repo)  
+- [truncate_bytes.py](/truncate_bytes.py) (this repo)  
+- [rename_bitsquid.py](/rename_bitsquid.py) (this repo)  
+- [Python 3](https://www.python.org/downloads/)
 
 The first step is unpacking `7efe746cbba01385`, using `bitsquid_unp.exe`:  
 ```
