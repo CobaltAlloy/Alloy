@@ -94,7 +94,7 @@ To install them:
 On linux systems, apply `alloy_editor_mod_x_x_x.diff` by executing the following command in the target Cobalt's root game directory:
 
 ```
-patch -p0 < [path to alloy_editor_mod_x_x_x.diff]
+patch -p0 < [path to alloy/lin/alloy_editor_mod_x_x_x_lin.diff]
 ```
 
 If the previous command returns different line ending errors, execute this:  
@@ -104,6 +104,22 @@ find daisyMoon/ -type f -name '*.lua' -exec dos2unix '{}' +
 ```
 
 and rerun the patch command.
+
+#### Windows
+
+First, Windows systems don't come with a preinstalled `patch` command, so we'll need to install one ourselves.
+
+Download the [Binaries Zip from the gnuwin32 "Patch for Windows" webpage](https://gnuwin32.sourceforge.net/packages/patch.htm) and copy `patch.exe` from the `bin` folder into your target Cobalt's game folder.
+
+Then, copy the `alloy` folder from this repo into your Cobalt game folder aswell.
+
+To apply the patch, open cmd in the game folder and run the following command:
+
+```
+.\patch.exe -p0 -i .\alloy\win\alloy_editor_mod_0_0_2_win.diff
+```
+
+To verify the patch applied correctly, check if the `daisyMoon` folder contains `alloy.lua`.
 
 ## Usage
 
