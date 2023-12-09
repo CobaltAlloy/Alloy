@@ -14,6 +14,8 @@ Alloy is based on unpacked Cobalt source code from the BitSquid version of the g
 ##### Option 1: Download from the Cobalt archive
 If you don't want to locally decompile, a version of the decompiled source can be found at the [Cobalt archive Google drive folder](https://drive.google.com/drive/folders/10Tw1c530qnA5l3P6u1jRyzI9fa3sEWz5?usp=drive_link)
 
+If you choose this option, skip to [using the source code](#running-the-editor-using-lua-source-code).
+
 ##### Option 2: Unpacking and decompiling locally
 
 To unpack and decompile, you will need:  
