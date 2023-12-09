@@ -10,7 +10,7 @@ Using Alloy, modders create "alloys", which can change how the game behaves, add
 
 Alloy is based on unpacked Cobalt source code from the BitSquid version of the game, located in `7efe746cbba01385`.  
 
-The prepare the editor, you will need:  
+To prepare the editor, you will need:  
 
 > [Bitsquid unpacker (bitsquid_unp)](https://web.archive.org/web/20221018164344/https://zenhax.com/download/file.php?id=959&sid=b46f061347c43223468aa896550bd9eb) (internet archive download)  
 > [Lua JIT decompiler (luajit-decompiler-v2)](https://github.com/marsinator358/luajit-decompiler-v2) (github repo)  
