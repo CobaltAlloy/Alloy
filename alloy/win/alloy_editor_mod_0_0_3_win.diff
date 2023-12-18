@@ -1,0 +1,4766 @@
+diff -X exclude -rubN daisyMoon/alloyConstants.lua moddedDaisyMoon/alloyConstants.lua
+--- daisyMoon/alloyConstants.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyConstants.lua	2023-12-18 17:31:42.077658618 +0100
+@@ -0,0 +1,78 @@
++ALLOY_KEY_CODES = {
++
++  backspace = 8,
++  tab = 9,
++
++  enter = 13,
++
++  shift = 16,
++  ctrl = 17,
++
++  caps_lock = 20,
++
++  escape = 27,
++
++  pageup = 33,
++  pagedown = 34,
++  kend = 35,
++  home = 36,
++  arrowleft = 37,
++  arrowup = 38,
++  arrowright = 39,
++  arrowdown = 40,
++
++  insert = 45,
++  delete = 46,
++
++  k0 = 48,
++  k1 = 49,
++  k2 = 50,
++  k3 = 51,
++  k4 = 52,
++  k5 = 53,
++  k6 = 54,
++  k7 = 55,
++  k8 = 56,
++  k9 = 57,
++
++  a = 65,
++  b = 66,
++  c = 67,
++  d = 68,
++  e = 69,
++  f = 70,
++  g = 71,
++  h = 72,
++  i = 73,
++  j = 74,
++  k = 75,
++  l = 76,
++  m = 77,
++  n = 78,
++  o = 79,
++  p = 80,
++  q = 81,
++  r = 82,
++  s = 83,
++  t = 84,
++  u = 85,
++  v = 86,
++  w = 87,
++  x = 88,
++  y = 89,
++  z = 90,
++  super = 91,
++
++  f1 = 112,
++  f2 = 113,
++  f3 = 114,
++  f4 = 115,
++  f5 = 116,
++  f6 = 117,
++  f7 = 118,
++  f8 = 119,
++  f9 = 120,
++
++  f11 = 122,
++  f12 = 123,
++}
+diff -X exclude -rubN daisyMoon/alloyDependencies.lua moddedDaisyMoon/alloyDependencies.lua
+--- daisyMoon/alloyDependencies.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyDependencies.lua	2023-12-18 17:31:42.077658618 +0100
+@@ -0,0 +1,356 @@
++ALLOY_ITEMS_CLONE = table.copy(ITEMS)
++ALLOY_ITEM_ATTRIBUTES = {}
++ALLOY_ITEM_NAMES = {}
++
++function AlloyGetValue(str)
++  local value = _G
++  for index in string.gmatch(str, "([^.]+)") do
++    if value[index] then
++      value = value[index]
++    else
++      print("Attempting to index into a nil value!  index attempt: " .. str)
++      return nil
++    end
++  end
++  return value
++end
++
++function AlloyPreInitItems()
++  DEFS.items.pre_init(ITEMS)
++  print("Items pre init done!")
++  DEFS.objects.generate_items()
++  print("Item Object generation done!")
++  --AlloyCustomTest()
++end
++
++function AlloyInit()
++  DEFS.items.init(ITEMS)
++  math.initRandom()
++  print("Items init done!")
++  DEFS.objects.init()
++  print("Objects init done!")
++end
++
++function AlloyCustomTest()
++  print("---OBJECTS---")
++  if OBJECTS["gyrojetGun"] then
++    for _, line in pairs(AlloyParseTable(OBJECTS["gyrojetGun"])) do print(line) end
++  else
++    print(nil)
++  end
++  print("---ITEMS---")
++  if ITEMS["gyrojetGun"] then
++    for _, line in pairs(AlloyParseTable(ITEMS["gyrojetGun"])) do print(line) end
++  else
++    print(nil)
++  end
++  print("---CUSTOM-OBJECTS---")
++  if OBJECTS["gyrojetBigGun"] then
++    for _, line in pairs(AlloyParseTable(OBJECTS["gyrojetBigGun"])) do print(line) end
++  else
++    print(nil)
++  end
++  print("---CUSTOM-ITEMS---")
++  if ITEMS["gyrojetBigGun"] then
++    for _, line in pairs(AlloyParseTable(ITEMS["gyrojetBigGun"])) do print(line) end
++  else
++    print(nil)
++  end
++end
++
++local ALLOY_RENDERERS = {}
++
++function RegisterAlloyRenderer(renderer)
++  ALLOY_RENDERERS[#ALLOY_RENDERERS + 1] = renderer
++  return #ALLOY_RENDERERS
++end
++
++function GetAlloyRendererById(id)
++  return ALLOY_RENDERERS[id]
++end
++
++function AlloyRenderer()
++  for key, value in pairs(ALLOY_RENDERERS) do
++    if value:isVisible() then
++      if value.alloyRender then
++        value:alloyRender()
++      end
++    else
++      ALLOY_RENDERERS[key] = nil
++    end
++  end
++end
++
++function UpdateAlloyItemData()
++  ALLOY_ITEM_ATTRIBUTES = {}
++  ALLOY_ITEM_NAMES = {}
++  local item_amount = 0
++  local key_amount = 0
++  for item_name, item_value in pairs(ALLOY_ITEMS_CLONE) do
++    if item_name then
++      ALLOY_ITEM_NAMES[#ALLOY_ITEM_NAMES + 1] = item_name
++      if item_value then
++        for key, value in pairs(item_value) do
++          if value ~= nil or value ~= '' then
++            if ALLOY_ITEM_ATTRIBUTES[key] == nil then
++              ALLOY_ITEM_ATTRIBUTES[key] = { value = 1 }
++              key_amount = key_amount + 1
++            elseif ALLOY_ITEM_ATTRIBUTES[key][value] == nil then
++              ALLOY_ITEM_ATTRIBUTES[key][value] = 1
++            else
++              ALLOY_ITEM_ATTRIBUTES[key][value] = ALLOY_ITEM_ATTRIBUTES[key][value] + 1
++            end
++          end
++        end
++      end
++      item_amount = item_amount + 1
++    end
++  end
++  print("Indexed " .. item_amount .. " items and " .. key_amount .. " attributes!")
++end
++
++function AlloyGetDebugFunction(func, max)
++  if type(func) ~= "function" then
++    return nil
++  end
++  local output = {}
++  local t = debug.getinfo(func)
++  local name = t.source:gsub("^@", "")
++  local i = 0
++  for line in io.lines(name) do
++    i = i + 1
++    if i >= t.linedefined then
++      if string.len(line) > max then
++        print(line .. "   is too long")
++      end
++      output[#output + 1] = line
++    end
++    if i >= t.lastlinedefined then
++      break
++    end
++  end
++  return output
++end
++
++function AlloyParseTable(table)
++  if type(table) ~= "table" then
++    return nil
++  end
++  local output = {}
++  local index = 1
++  for key, value in pairs(table) do
++    local line = key .. " = "
++    local type = type(value)
++    if type == "nil" then
++      line = line .. "nil"
++    elseif type == "number" then
++      line = line .. value
++    elseif type == "string" then
++      line = line .. '"' .. value .. '"'
++    elseif type == "boolean" then
++      if value then
++        line = line .. "True"
++      else
++        line = line .. "False"
++      end
++    elseif type == "table" then
++      line = line .. "{"
++    else
++      line = line .. "type:" .. type
++    end
++    output[index] = line
++    index = index + 1
++    if type == "table" then
++      for nKey, nValue in pairs(AlloyParseTable(value)) do
++        output[index] = "  " .. nValue
++        index = index + 1
++      end
++    end
++  end
++  return output
++end
++
++ALLOY_LIST = {}
++
++function AlloyGenerateList()
++  local list = {}
++  local root = daisy.getResourcesFolderPath("alloys")
++  local alloys = app.getFolderContents(root, "/")
++  for _, alloy in pairs(alloys) do
++    local alloy_root = root .. "/" .. alloy
++    if app.getFolderContents(alloy_root, "alloy.meta")[1] then
++      local data = nil
++      if ALLOY_LIST[alloy] then
++        data = ALLOY_LIST[alloy].data
++      end
++      list[alloy] = {
++        data = data,
++        path = alloy_root
++      }
++    end
++  end
++  ALLOY_LIST = list
++end
++
++function AlloyLoad(alloy)
++  if ALLOY_LIST[alloy] then
++    ALLOY_LIST[alloy].data = resources.load("alloy", ALLOY_LIST[alloy].path, nil, true)
++  else
++    print("Requested alloy: " .. alloy .. " isn't indexed!")
++  end
++end
++
++ALLOY_CONFIG = {}
++
++function AlloyLoadConfig()
++  local path = daisy.getResourcesFolderPath("alloys") .. "/alloy.cfg"
++  local data = table.load(path)
++
++  if data then
++    for alloy, cfg in pairs(data) do
++      if ALLOY_LIST[alloy] then
++        ALLOY_CONFIG[alloy] = cfg
++      end
++    end
++  end
++end
++
++function AlloySaveConfig()
++  local path = daisy.getResourcesFolderPath("alloys") .. "/alloy.cfg"
++  table.save(ALLOY_CONFIG, path)
++end
++
++function AlloyAddToConfig(alloy, option)
++  if not ALLOY_CONFIG[alloy] and alloy then
++    ALLOY_CONFIG[alloy] = {
++      { type = "toggle", value = false, name = "Load on launch" },
++      { type = "numeric", value = 0, min = -999, max = 999, name = "Load offset"}
++    }
++  end
++
++  if option then
++    ALLOY_CONFIG[alloy][#ALLOY_CONFIG[alloy] + 1] = option
++  end
++end
++
++function AlloyRegisterOption(alloy, option)
++  if ALLOY_CONFIG[alloy] then
++    for i, data in pairs(ALLOY_CONFIG[alloy]) do
++      local same = true
++      for key, value in pairs(data) do
++        if same and key ~= "value" then
++          if option[key] then
++            same = option[key] == value
++          else
++            same = false
++          end
++        end
++      end
++      if same then
++        return data, i
++      end
++    end
++  end
++  AlloyAddToConfig(alloy, option)
++  return option, #ALLOY_CONFIG[alloy]
++end
++
++function AlloyAutoLoad()
++	local alloys = {}
++	local alloy_amount = 0
++	for _, _ in pairs(ALLOY_CONFIG) do alloy_amount = alloy_amount + 1 end
++	local offset = math.pow(10, math.ceil(math.log(alloy_amount, 10)))
++	local index = 0
++	for name, cfg in pairs(ALLOY_CONFIG) do
++		index = index + 1
++		if cfg[1] then
++			if cfg[1].value then
++				alloys[cfg[2].value * offset + index] = name
++			end
++		end
++	end
++	table.sort(alloys)
++	for _, name in pairs(alloys) do
++		AlloyLoad(name)
++		local alloy = ALLOY_LIST[name].data
++		alloy:moduleLoad()
++	end
++end
++
++ALLOY_BLOCK_INPUT = false
++local alloy_input_return = nil
++
++function AlloyBlockInput(bool)
++  if bool then
++    ALLOY_BLOCK_INPUT = bool
++  else
++    ALLOY_BLOCK_INPUT = not ALLOY_BLOCK_INPUT
++  end
++
++  local input = states.get("input")
++  local offer_amount = 0
++
++  for offer, data in pairs(input.offers) do
++    offer_amount = offer_amount + 1
++  end
++
++  if ALLOY_BLOCK_INPUT then
++    alloy_input_return = input.offers
++    input.offers = {}
++    for _, controller in pairs(input.controllers) do
++      controller:refreshInputTarget()
++    end
++  else
++    if alloy_input_return and offer_amount == 0 then
++      input.offers = alloy_input_return
++      alloy_input_return = {}
++      for _, controller in pairs(input.controllers) do
++        controller:refreshInputTarget()
++      end
++    end
++  end
++end
++
++local ALLOY_HOTKEYS = {}
++
++function RegisterAlloyHotkey(key, modifier, callback)
++  if ALLOY_HOTKEYS[key] then
++    ALLOY_HOTKEYS[key][#ALLOY_HOTKEYS[key] + 1] = { modifier = modifier, callback = callback }
++  else
++    ALLOY_HOTKEYS[key] = { { modifier = modifier, callback = callback } }
++  end
++end
++
++function RemoveAlloyHotkey(key, modifier)
++  if ALLOY_HOTKEYS[key] then
++    for id, data in pairs(ALLOY_HOTKEYS[key]) do
++      if data.modifier == modifier then
++        ALLOY_HOTKEYS[key][id] = nil
++      end
++    end
++  end
++end
++
++hook.add("keyPress", function(key)
++  if ALLOY_HOTKEYS[key] then
++    for _, data in pairs(ALLOY_HOTKEYS[key]) do
++      local boundModifier = data.modifier
++      local callback = data.callback
++      if boundModifier then
++        if daisy.isKeyPressed(boundModifier) then
++          callback.execute(callback)
++        end
++      else
++        callback.execute(callback)
++      end
++    end
++  end
++end)
++
++dofile("alloyConstants.lua")
++dofile("alloy.lua")
++dofile("alloyItem.lua")
++dofile("alloyMenu.lua")
++
++AlloyGenerateList()
++AlloyLoadConfig()
+diff -X exclude -rubN daisyMoon/alloyEdit.lua moddedDaisyMoon/alloyEdit.lua
+--- daisyMoon/alloyEdit.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyEdit.lua	2023-12-18 17:31:42.077658618 +0100
+@@ -0,0 +1,206 @@
++AlloyEdit = inherited("AlloyEdit", ManipulatorState)
++
++local DEFAULT_ALLOY_EDIT_STATE = {
++  manipulatorType = "node",
++  appId = "NIL",
++  autoBackups = true,
++  overallZoom = 1
++}
++
++function AlloyEdit:new()
++	local e = instance(self)
++	
++	e.input:setSet("adventure")
++	e:initStateData("alloystate")
++	e:initView(ResourceView:new(), 0.001, 4)
++	
++	e.menuBar = MenuBar:new(e, "alloy")
++	
++	e:addManipulators("nodeCamera", "node")
++	e:loadState(DEFAULT_ALLOY_EDIT_STATE)
++	sprites.requireDefsKey(e, BGS, "whiteGradient")
++
++	UpdateAlloyItemData()
++	
++	return e
++end
++
++function AlloyEdit:getUndoData()
++	return self.alloy
++end
++
++function AlloyEdit:saveUndoData(file, data, meta)
++	data:save(file)
++end
++
++function AlloyEdit:loadUndoData(file, meta)
++	self.manipulator:clearDependencies()
++	file:setRootPath(self.alloy:getPath())
++	
++	local a = Adventure:load(file)
++	
++	if a then
++		a:initGraph()
++		self:setResource(a)
++	end
++end
++
++function AlloyEdit:init()
++	states.get("music"):stopCurrentMusic()
++	self.menuBar:refreshMenuTree()
++	self:finishInit()
++end
++
++function AlloyEdit:finishInit()
++end
++
++function AlloyEdit:enable()
++	self.gui.gui:setVisible(true)
++	self.input:reset()
++	states.get("input"):offerInput("alloyEdit", self.input)
++	
++	if self:getResource() then
++		self:getResource():refresh()
++	end
++end
++
++function AlloyEdit:unpause()
++	self.gui.gui:setVisible(true)
++end
++
++function AlloyEdit:pause()
++	self.gui.gui:setVisible(false)
++end
++
++function AlloyEdit:disable()
++	states.get("input"):retractInput("alloyEdit")
++	self.gui.gui:setVisible(false)
++end
++
++function AlloyEdit:close()
++	self:onStateEvent("onClose")
++	self:disable()
++	self:saveState()
++end
++
++function AlloyEdit:mouseClick(x, y, button, clickCount)
++	self:super().mouseClick(self, x, y, button, clickCount)
++end
++
++function AlloyEdit:keyPressed(key)
++	self.menuBar:checkMenuShortcut(key)
++end
++
++function AlloyEdit:resourcePositionToCanvas(x, y)
++	if self.layer then
++		return self.layer:positionToCanvas(x, y, self.view.camera)
++	else
++		return x, y
++	end
++end
++
++function AlloyEdit:screenPositionToResource(x, y)
++	if self.layer then
++		return self.layer:xToLayer(self.view:xToCamera(window.xToView(x, self.view), self.layer), self.view.camera), self.layer:yToLayer(self.view:yToCamera(window.yToView(y, self.view), self.layer), self.view.camera)
++	else
++		return x, y
++	end
++end
++
++function AlloyEdit:update(time)
++	self:super().update(self, time)
++	self.view:updatePan(self.mouse, time, 500 / self.overallZoom)
++	self:updateZoom(time)
++	self:refreshMouseCoordinates()
++	
++	if not self.mouse.eaten and self.manipulator then
++		self.manipulator:updateInput(self.input, self.mouse, self.mouse.x, self.mouse.y, time)
++		
++		if self.input.esc and not self.input.lastEsc then
++			self.manipulator:reset()
++			
++			if self.manipulator:isTool() then
++				self:restoreManipulator()
++			else
++				self:setManipulator(self.layer:getManipulatorType())
++			end
++		end
++		
++		if self.input.drag then
++			self:setManipulator("nodeCamera")
++		elseif not self.input.drag and self.input.lastDrag then
++			self:restoreManipulator()
++		end
++	end
++	
++	if self.layer then
++		self.layer:updateEdittime(time)
++	end
++	
++	self:refreshMouseCoordinates()
++	self.view:update(time)
++	self:super().postUpdate(self, time)
++end
++
++function AlloyEdit:stopRoutines()
++	if self.alloy then
++		self.alloy:stopRoutines()
++	end
++end
++
++function AlloyEdit:getResource()
++	return self.alloy
++end
++
++function AlloyEdit:onNewResource(res)
++	res:initEdit(res)
++end
++
++function AlloyEdit:setResource(u)
++	self.alloy = u
++	
++	self.view:setResource(u)
++	self:setView(self.view)
++	
++	self.layer = self.alloy.graph
++	self.view.camera.x = 0
++	self.view.camera.y = 0
++	
++	self:finishInit()
++end
++
++function AlloyEdit:onSaved(res)
++	app.setLastResource(res)
++	
++	if self.autoBackups then
++		resources.backup("alloy", res, self)
++	end
++end
++
++function AlloyEdit:load(res)
++	self:onStateEvent("onLoad", res)
++	self:setResource(res)
++	app.setLastResource(res)
++end
++
++function AlloyEdit:render()
++	if self.layer then
++		self.layer:renderRelations(self.view.camera, 32, 200, 255, 200)
++	end
++	
++	canvas.setToRef()
++	
++	if self.manipulator then
++		self.manipulator:render(self.input, self.mouse, self.view.camera)
++	end
++	
++	canvas.setToWindow()
++	
++	local col = self.manipulator:isTargeting() and COLORS.darkened or COLORS.white
++	
++	if self.view then
++		self.view:renderEditor(255, col.r, col.g, col.b, self.manipulator, self.input, self.mouse)
++	end
++	
++	self:super().postRender(self)
++end
+diff -X exclude -rubN daisyMoon/alloyItem.lua moddedDaisyMoon/alloyItem.lua
+--- daisyMoon/alloyItem.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyItem.lua	2023-12-18 17:31:42.077658618 +0100
+@@ -0,0 +1,177 @@
++AlloyItem = inherited("AlloyItem", GraphResource)
++
++resources.setClass("alloyItem", AlloyItem)
++
++AlloyItem.versions = {
++  current = 1
++}
++
++function AlloyItem:new(owner)
++  local self = instance(self)
++
++  self:setType("alloyItem")
++  self.owner = owner
++	self.itemDefinition = {
++  	name = "",
++		inherits = "",
++  	tags = {}
++	}
++
++  serialization.initParameters(self:getParameters(), self)
++
++  return self
++end
++
++function AlloyItem:getDefinition()
++	return self.itemDefinition
++end
++
++function AlloyItem:updateDefinition(itemDefinition)
++	self.itemDefinition = itemDefinition
++end
++
++function AlloyItem:getItem()
++	local data = {}
++	for key, value in pairs(self.itemDefinition.tags) do
++		local inherits = self.itemDefinition.inherits
++		if inherits == "" then
++			inherits = self.itemDefinition.name
++		end
++		if value.type == "table" then
++			if value.value == "Unchanged" or type(value.value)  == "table" then
++				data[key] = table.copy(ALLOY_ITEMS_CLONE[inherits][key])
++			else
++				data[key] = table.copy(AlloyGetValue(value.value))
++			end
++		elseif value.type == "function" then
++			if value.value == "Unchanged" or type(value.value) == "function" then
++				data[key] = ALLOY_ITEMS_CLONE[inherits][key]
++				-- this would be better since it creates a copy of the function
++				-- however it the function uses file locals this causes a crash
++				--data[key] = loadstring(string.dump(ALLOY_ITEMS_CLONE[inherits][key]))
++			else
++				data[key] = AlloyGetValue(value.value)
++			end
++		else
++			data[key] = value.value
++		end
++	end
++	return data, self.itemDefinition.name
++end
++
++AlloyItem.serialization = {
++  parametersOrder = {
++    "edit",
++    "item",
++  },
++  parameters = {
++    edit = {
++      type = "instance",
++      spawn = function(self)
++      	_editDialogs.createAlloyEditItemDialog("Edit item", self:getDefinition(), self)
++      end
++    },
++    item = {
++      label = "",
++      type = "text"
++    }
++  }
++}
++
++function AlloyItem:register(file)
++	file:register(self, true)
++
++  serialization.registerParameters(file, self:getParameters(), self)
++end
++
++function AlloyItem:saveItemDefinition(file)
++	if self.itemDefinition.name ~= "" then
++  	file:writeBoolean(true)
++		file:writeString(self.itemDefinition.name)
++
++		file:writeString(self.itemDefinition.inherits)
++
++		local tags = {}
++		for key, value in pairs(self.itemDefinition.tags) do
++			tags[#tags+1] = {
++				name = key,
++				type = value.type,
++				value = value.value
++			}
++		end
++
++		file:writeInt(#tags)
++		for index = 1, #tags do
++			local tType = tags[index].type
++    	local tValue = tags[index].value
++			file:writeString(tags[index].name)
++			file:writeString(tType)
++			if tType == "table" or tType == "function" then
++      	if type(tValue) == "string" then
++					file:writeString(tValue)
++				else
++					file:writeString("Unchanged")
++				end
++			elseif tType == "number" then
++				file:writeString("" .. tValue)
++			elseif tType == "boolean" then
++				file:writeBoolean(tValue)
++			else
++				file:writeString(tValue)
++      end
++    end
++	else
++		file:writeBoolean(false)
++  end
++end
++
++function AlloyItem:save(file)
++  file:writeInt(self.versions.current)
++  file:writeInstance(self)
++	self:saveItemDefinition(file)
++
++  serialization.saveParameters(file, self:getParameters(), self)
++end
++
++function AlloyItem:loadItemDefinition(file)
++	self.itemDefinition = {
++  	name = "",
++		inherits = "",
++  	tags = {}
++	}
++	local exists = file:readBoolean()
++	if exists then
++		self.itemDefinition.name = file:readString()
++		self.itemDefinition.inherits = file:readString()
++
++		local tagAmount = file:readInt()
++		for index = 1, tagAmount do
++			local name = file:readString()
++			local type = file:readString()
++			local value
++
++			if type == "number" then
++				value = tonumber(file:readString())
++			elseif type == "boolean" then
++				value = file:readBoolean()
++			else
++				value = file:readString()
++			end
++
++    	self.itemDefinition.tags[name] = {
++				type = type,
++				value = value
++			}
++		end
++	end
++end
++
++function AlloyItem:load(file, owner)
++	local version = file:readInt()
++	local self = file:readReference()
++	self:loadItemDefinition(file)
++
++	serialization.loadParameters(file, self)
++
++  return self
++end
+diff -X exclude -rubN daisyMoon/alloy.lua moddedDaisyMoon/alloy.lua
+--- daisyMoon/alloy.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloy.lua	2023-12-18 17:31:42.077658618 +0100
+@@ -0,0 +1,227 @@
++Alloy = inherited("Alloy", GraphResource)
++Alloy.versions = {
++	current = 1
++}
++
++resources.setClass("alloy", Alloy)
++
++function Alloy:new()
++	local self = instance(self)
++
++	self:setType("alloy")
++	serialization.initParameters(self:getParameters(), self)
++
++	return self
++end
++
++Alloy.serialization = {
++	parametersOrder = {
++		"displayName",
++		"description",
++		"author",
++		"codeEntryPoint",
++		"items"
++	},
++	parameters = {
++		displayName = {
++			index = "name",
++			type = "localizedText"
++		},
++		description = {
++			index = "description",
++			type = "localizedText"
++		},
++		author = {
++			type = "text"
++		},
++		codeEntryPoint = {
++			type = "optionalnested",
++			parametersOrder = {
++				"picker",
++				"value"
++			},
++			parameters = {
++				picker = {
++					type = "instance",
++					spawn = function(self)
++						local folder = self.folder
++						if folder then
++							local callback = {
++								codeEntryPoint = self.codeEntryPoint,
++								onOk = function(holder, path)
++									local folder, file, type = string.match(path, "(.-)([^\\/]-%.?([^%.\\/]*))$")
++									holder.codeEntryPoint["value"] = file
++								end
++							}
++							_editDialogs.createFileDialog("Set entry point path...", folder, "*.lua", callback)
++						end
++					end
++				},
++				value = {
++					label = "",
++					type = "text",
++				}
++			}
++		},
++		items = {
++			type = "children",
++			spawn = function(self)
++				return AlloyItem:new(self)
++			end
++		}
++	},
++	header = {},
++	contents = {
++		dummyContent = {
++			type = "text"
++		}
++	}
++}
++
++function Alloy:moduleLoad()
++	if self.codeEntryPoint["value"] and self.folder then
++		local path = self.folder .. "/" .. self.codeEntryPoint.value
++		dofile(path)
++		print("Loaded file at: " .. path .. " !")
++	end
++
++	local amount = 0
++	for _, value in pairs(self.items) do
++		local data, name = value:getItem()
++		ITEMS[name] = data
++		amount = amount + 1
++	end
++	AlloyPreInitItems()
++	AlloyInit()
++
++	print("Loaded " .. amount .. " additional items!")
++end
++
++function Alloy:populateInfo(info)
++	info.author = self.author or info.author
++	info.name = self.displayName or info.name
++	info.description = self.description or info.description
++end
++
++function Alloy:register(file)
++	if file:register(self, true) then
++		if self.graph then
++			self.graph:register(file)
++		end
++
++		self:registerRecursiveChildren(file)
++
++		if self:getParameters() then
++			serialization.registerParameters(file, self:getParameters(), self)
++		end
++
++		file:registerData(self, "header", true)
++		file:registerData(self, "contents")
++	end
++end
++
++function Alloy:saveHeader(file)
++	file:writeInt(self.versions.current)
++	self:register(file)
++	file:writeRegister()
++	file:writeInstance(self)
++	file:writeData(self, "header", true)
++
++	if self:getParameters() then
++		file:writeBoolean(true)
++		serialization.saveParameters(file, self:getParameters(), self)
++	else
++		file:writeBoolean(false)
++	end
++end
++
++function Alloy:saveContents(file)
++	file:writeData(self, "contents")
++end
++
++function Alloy:saveEdit(file, version)
++	if self.graph then
++		file:writeBoolean(true)
++		self.graph:save(file)
++	else
++		file:writeBoolean(false)
++	end
++end
++
++function Alloy:save(file)
++	self:saveHeader(file)
++	self:saveContents(file)
++	self:saveEdit(file)
++
++	return true
++end
++
++function Alloy:loadHeader(file)
++	local version = file:readInt()
++
++	file:readRegister()
++
++	local self = file:readReference() or instance(self)
++
++	file:readData(self)
++
++	local hasParams = file:readBoolean()
++
++	if hasParams then
++		serialization.loadParameters(file, self, self:getParameters())
++	end
++
++	return self, version
++end
++
++function Alloy:loadContents(file, version, yieldStart)
++	self:initGraphTier()
++	file:readData(self)
++	self:setType(self.type)
++end
++
++function Alloy:loadEdit(file, version, yieldStart)
++	local hasGraph = file:readBoolean()
++
++	if hasGraph then
++		self.graph = Layer:load(file, self, yieldStart)
++
++		self.graph:verifyNodes()
++	end
++
++	self:loadChildTree()
++end
++
++function Alloy:load(file, yieldStart)
++	local u, version = self:loadHeader(file)
++
++	u:loadFolderContents(yieldStart)
++	u:loadContents(file, version, yieldStart)
++
++	return u, "OK"
++end
++
++function Alloy:loadFolderContents(yieldStart, edit)
++end
++
++function Alloy:onLoaded()
++	if self.graph then
++		self:initGraph()
++	end
++
++	if self:localizeExists("description") then
++		self.description = self:localize("description")
++	end
++end
++
++function Alloy:refresh()
++	self:loadFolderContents(nil, true)
++end
++
++function Alloy:getLocalizedName()
++	return self.displayName or self.name
++end
++
++function Alloy:getBooker()
++	return self
++end
+diff -X exclude -rubN daisyMoon/alloyMenu.lua moddedDaisyMoon/alloyMenu.lua
+--- daisyMoon/alloyMenu.lua	1970-01-01 01:00:00.000000000 +0100
++++ moddedDaisyMoon/alloyMenu.lua	2023-12-18 17:31:42.077658618 +0100
+@@ -0,0 +1,237 @@
++local alloyMenu = {
++  anim = 0,
++  selected = { 0, 0 },
++  selected_tab = 1,
++  tab_table = { "alloys", "config" },
++  selected_alloy = nil,
++  selected_option = nil,
++  alloy_table = {},
++  visible = false,
++  hotkeys = {
++    selection_back = {
++      key = 37,
++      execute = function(cb)
++        local option = cb.menu.selected_option
++        if option then
++        else
++          if cb.menu.selected_tab > 1 then
++            cb.menu.selected_tab = cb.menu.selected_tab - 1
++          end
++        end
++      end
++    },
++    selection_previous = {
++      key = 38,
++      execute = function(cb)
++        local option = cb.menu.selected_option
++        if option then
++          if option.type == "numeric" and option.value < option.max then
++            option.value = option.value + 1
++          end
++        else
++          cb.menu.selected[cb.menu.selected_tab] = cb.menu.selected[cb.menu.selected_tab] - 1
++        end
++      end
++    },
++    selection_forward = {
++      key = 39,
++      execute = function(cb)
++        local option = cb.menu.selected_option
++        if option then
++        else
++          if cb.menu.selected_tab == 1 then
++            local alloy = cb.menu.alloy_table
++                [cb.menu.selected[cb.menu.selected_tab] % #cb.menu.alloy_table + 1]
++            cb.menu.selected_alloy = alloy
++            if not ALLOY_CONFIG[alloy] then
++              AlloyAddToConfig(alloy)
++            end
++          end
++
++          if cb.menu.selected_tab < #cb.menu.tab_table then
++            cb.menu.selected_tab = cb.menu.selected_tab + 1
++          end
++        end
++      end
++    },
++    selection_next = {
++      key = 40,
++      execute = function(cb)
++        local option = cb.menu.selected_option
++        if option then
++          if option.type == "numeric" and option.value > option.min then
++            option.value = option.value - 1
++          end
++        else
++          cb.menu.selected[cb.menu.selected_tab] = cb.menu.selected[cb.menu.selected_tab] + 1
++        end
++      end
++    },
++    selection_action = {
++      key = 13,
++      execute = function(cb)
++        local option = cb.menu.selected_option
++        if option then
++          cb.menu.selected_option = nil
++        else
++          local index = cb.menu.selected[cb.menu.selected_tab]
++          if cb.menu.selected_tab == 1 then
++            local name = cb.menu.alloy_table[index % #cb.menu.alloy_table + 1]
++            AlloyLoad(name)
++            local alloy = ALLOY_LIST[name].data
++            alloy:moduleLoad()
++          elseif cb.menu.selected_tab == 2 then
++            local alloy = cb.menu.selected_alloy
++            option = ALLOY_CONFIG[alloy][index % #ALLOY_CONFIG[alloy] + 1]
++            if option.type == "toggle" then
++              option.value = not option.value
++            elseif option.type then
++              cb.menu.selected_option = ALLOY_CONFIG[alloy][index % #ALLOY_CONFIG[alloy] + 1]
++            end
++          end
++        end
++      end
++    }
++  },
++  loadMenuHotkeys = function(self)
++    for _, hotkey in pairs(self.hotkeys) do
++      RegisterAlloyHotkey(hotkey.key, hotkey.modifier, { menu = self, execute = hotkey.execute })
++    end
++  end,
++  unloadMenuHotkeys = function(self)
++    for _, hotkey in pairs(self.hotkeys) do
++      RemoveAlloyHotkey(hotkey.key, hotkey.modifier)
++    end
++  end,
++  alloyRender = function(self)
++    if self.anim_state == "open" then
++      self.anim = self.anim + 0.1
++      if self.anim > math.pi / 2 then
++        self.anim = math.pi / 2
++        self.anim_state = nil
++      end
++    elseif self.anim_state == "close" then
++      self.anim = self.anim - 0.1
++      if self.anim < 0 then
++        self:unloadMenuHotkeys()
++        self.visible = false
++        self.anim_state = nil
++      end
++    end
++    local bg = { r = 80, g = 90, b = 100 }
++    local fg = { r = 219, g = 221, b = 222 }
++    local a = 192
++    local w = math.floor(window.w / 4 * math.sin(self.anim))
++    video.renderSpriteLine(window.w - w, 0, window.w - w, window.h, 128, fg.r, fg.g, fg.b, nil, nil, 2)
++    video.renderSpriteRectangle(window.w - w - 2, 0, w + 2, window.h, 128, bg.r, bg.g, bg.b)
++
++    if self.selected_tab == 1 then
++      video.renderTextSprites("Name", window.w - w + 10, 55, 0, "small", 128, fg.r, fg.g, fg.b, nil, 1)
++      video.renderTextSprites("Loaded", window.w - 80, 55, 0, "small", 128, fg.r, fg.g, fg.b, nil, 1)
++      local h = 0
++      for i, name in pairs(self.alloy_table) do
++        if i - 1 == self.selected[self.selected_tab] % #self.alloy_table then a = 192 else a = 128 end
++        video.renderTextSprites(name, window.w - w + 10, 80 + h, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++
++        if ALLOY_CONFIG[name] then
++          local chars = tostring(ALLOY_CONFIG[name][2].value)
++          video.renderTextSprites(chars, window.w - (string.len(chars) + 10) * 10, 80 + h, 0, "small", a, fg.r, fg.g,
++            fg.b, nil, 1)
++        end
++
++        if ALLOY_LIST[name].data then
++          video.renderTextSprites("Yes", window.w - 80 + 15, 80 + h, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++        else
++          video.renderTextSprites("No", window.w - 80 + 20, 80 + h, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++        end
++        h = h + 20
++      end
++      a = 192
++    else
++      a = 128
++      video.renderSpriteLine(window.w - w + 1, 33, window.w - w + 71, 33, 128, fg.r, fg.g, fg.b, nil, nil, 2)
++    end
++    video.renderTextSprites(self.tab_table[1], window.w - w + 10, 10, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++    video.renderSpriteLine(window.w - w + 72, 0, window.w - w + 72, 34, 128, fg.r, fg.g, fg.b, nil, nil, 2)
++
++    if self.selected_tab == 2 then
++      video.renderTextSprites(self.selected_alloy, window.w - w + 10, 55, 0, "medium", 128, fg.r, fg.g, fg.b, nil, 1)
++      local h = 0
++      if self.selected_alloy then
++        for i, data in pairs(ALLOY_CONFIG[self.selected_alloy]) do
++          local selected = i - 1 == self.selected[self.selected_tab] % #ALLOY_CONFIG[self.selected_alloy]
++          if selected then a = 192 else a = 128 end
++          if data then
++            video.renderTextSprites(data.name, window.w - w + 10, 90 + h, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++            if data.type == "toggle" then
++              if data.value then
++                video.renderTextSprites("Yes", window.w - 50 + 5, 90 + h, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++              else
++                video.renderTextSprites("No", window.w - 50 + 10, 90 + h, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++              end
++            elseif data.type == "numeric" then
++              local chars = tostring(data.value)
++              video.renderTextSprites(chars, window.w - (string.len(chars) + 2) * 10, 90 + h, 0, "small", a, fg.r, fg.g,
++                fg.b, nil, 1)
++              if selected and self.selected_option then
++                local x = window.w - 35
++                if string.len(chars) == 1 then x = x + 5 end
++                local y = 90 + h
++                video.renderSpriteLine(x, y - 2, x + 6, y - 5, a, fg.r, fg.g, fg.b, nil, nil, 2)
++                video.renderSpriteLine(x + 6, y - 5, x + 12, y - 2, a, fg.r, fg.g, fg.b, nil, nil, 2)
++                video.renderSpriteLine(x, y + 17, x + 6, y + 20, a, fg.r, fg.g, fg.b, nil, nil, 2)
++                video.renderSpriteLine(x + 6, y + 20, x + 12, y + 17, a, fg.r, fg.g, fg.b, nil, nil, 2)
++                -- add the selected graphics
++              end
++            end
++          end
++          if i == 2 then h = h + 10 end
++          h = h + 25
++        end
++      end
++      a = 192
++    else
++      a = 128
++      video.renderSpriteLine(window.w - w + 73, 33, window.w - w + 143, 33, 128, fg.r, fg.g, fg.b, nil, nil, 2)
++    end
++    video.renderTextSprites(self.tab_table[2], window.w - w + 80, 10, 0, "small", a, fg.r, fg.g, fg.b, nil, 1)
++    video.renderSpriteLine(window.w - w + 144, 0, window.w - w + 144, 34, 128, fg.r, fg.g, fg.b, nil, nil, 2)
++  end
++}
++
++function AlloyMenuToggle(callback)
++  if alloyMenu.anim_state == nil then
++    if alloyMenu.id then
++      AlloyBlockInput(false)
++      AlloySaveConfig()
++      alloyMenu.anim_state = "close"
++      alloyMenu.id = nil
++    elseif alloyMenu.visible == false then
++      AlloyBlockInput(true)
++      alloyMenu.visible = true
++      alloyMenu.anim_state = "open"
++      alloyMenu.alloy_table = {}
++      alloyMenu:loadMenuHotkeys()
++      local renderer = {
++        isVisible = function()
++          return alloyMenu.visible
++        end,
++        alloyRender = function()
++          alloyMenu:alloyRender()
++        end
++      }
++      alloyMenu.id = RegisterAlloyRenderer(renderer)
++
++      alloyMenu.selected_tab = 1
++      for key, _ in pairs(alloyMenu.selected) do alloyMenu.selected[key] = 0 end
++
++      AlloyGenerateList()
++      for name, _ in pairs(ALLOY_LIST) do
++        alloyMenu.alloy_table[#alloyMenu.alloy_table + 1] = name
++      end
++      table.sort(alloyMenu.alloy_table)
++    end
++  end
++end
++
++RegisterAlloyHotkey(9, 17, { execute = AlloyMenuToggle })
+diff -X exclude -rubN daisyMoon/dashmenuStates.lua moddedDaisyMoon/dashmenuStates.lua
+--- daisyMoon/dashmenuStates.lua	2023-11-30 02:17:06.632108450 +0100
++++ moddedDaisyMoon/dashmenuStates.lua	2023-12-18 17:31:42.079658615 +0100
+@@ -37,7 +37,8 @@
+ 	renderLightMenu1 = function(self, x, y, menu_w, menu_h, col)
+ 		local screen = self.screen
+ 		
+-		video.renderTextSprites(localize.get("demo_mode"), x + menu_w * 0.5, y + menu_h * 0.6, 1, "big", 255 * screen.smoothAmount / 2 * math.abs((math.sign(math.cos(self.time * math.pi * 4)))), 255, 255, 255)
++		video.renderTextSprites(localize.get("demo_mode"), x + menu_w * 0.5, y + menu_h * 0.6, 1, "big",
++			255 * screen.smoothAmount / 2 * math.abs((math.sign(math.cos(self.time * math.pi * 4)))), 255, 255, 255)
+ 	end,
+ 	update = function(self, time)
+ 		if self.demoProgressTimer and self.demoProgressTimer < 1 then
+@@ -52,10 +53,12 @@
+ 		local col = COLORS.main_menu_demo
+ 		local screen = self.screen
+ 		
+-		video.renderTextSprites(localize.get("demo_mode"), x + menu_w * 0.5, y + menu_h * 0.6, 1, "big", col.a * screen.smoothAmount / 2 * math.abs((math.sign(math.cos(self.time * math.pi * 4)))), col.r, col.g, col.b)
++		video.renderTextSprites(localize.get("demo_mode"), x + menu_w * 0.5, y + menu_h * 0.6, 1, "big",
++			col.a * screen.smoothAmount / 2 * math.abs((math.sign(math.cos(self.time * math.pi * 4)))), col.r, col.g, col.b)
+ 		
+ 		if self.demoProgressTimer then
+-			video.renderCenteredProgressBar(10 - self.demoProgressTimer * 10, 10, 10, x + menu_w * 0.5, y + menu_h * 0.7, 0.5, 0, col.a * screen.smoothAmount / 2, col.r, col.g, col.b)
++			video.renderCenteredProgressBar(10 - self.demoProgressTimer * 10, 10, 10, x + menu_w * 0.5, y + menu_h * 0.7, 0.5,
++				0, col.a * screen.smoothAmount / 2, col.r, col.g, col.b)
+ 		end
+ 	end
+ }
+@@ -296,7 +299,9 @@
+ 			local start_col = COLORS.main_menu_press_start
+ 			local font = GLOBAL.main_menu_press_start_font
+ 			
+-			video.renderTextSprites(localize.getCached("press_start"), x + menu_w * GLOBAL.main_menu_press_start_x_factor, y + menu_h * GLOBAL.main_menu_press_start_y_factor + fonts.alignY(font), 1, font, screen.startFade * start_col.a, start_col.r, start_col.g, start_col.b)
++			video.renderTextSprites(localize.getCached("press_start"), x + menu_w * GLOBAL.main_menu_press_start_x_factor,
++				y + menu_h * GLOBAL.main_menu_press_start_y_factor + fonts.alignY(font), 1, font, screen.startFade * start_col.a,
++				start_col.r, start_col.g, start_col.b)
+ 		end
+ 	end,
+ 	remove = function(self)
+@@ -638,7 +643,8 @@
+ 		local screen = self.screen
+ 		
+ 		if self.dashboard_fade > 0 and not self.render_element then
+-			self.dashboard:render(x + menu_w * 0.5, y + menu_h * 0.5, 1, math.easeOut(self.dashboard_fade) * col.a * screen.smoothAmount, col.r, col.g, col.b, true)
++			self.dashboard:render(x + menu_w * 0.5, y + menu_h * 0.5, 1,
++				math.easeOut(self.dashboard_fade) * col.a * screen.smoothAmount, col.r, col.g, col.b, true)
+ 		end
+ 	end,
+ 	renderMenu1 = function(self, x, y, menu_w, menu_h, col, light_rendered)
+@@ -648,7 +654,8 @@
+ 		if self.dashboard_fade > 0 and not self.render_element then
+ 			local opacity_factor = light_rendered and 0.5 or 1
+ 			
+-			dashboard:render(x + menu_w * 0.5, y + menu_h * 0.5, 1, math.easeOut(self.dashboard_fade) * col.a * screen.smoothAmount * opacity_factor, col.r, col.g, col.b, false)
++			dashboard:render(x + menu_w * 0.5, y + menu_h * 0.5, 1,
++				math.easeOut(self.dashboard_fade) * col.a * screen.smoothAmount * opacity_factor, col.r, col.g, col.b, false)
+ 		end
+ 	end,
+ 	renderMenu2 = function(self, x, y, menu_w, menu_h, col)
+@@ -657,7 +664,8 @@
+ 		
+ 		if not self.render_element and dashboard:hasHelp() then
+ 			local scale = 0.5
+-			local x, y = x + menu_w * 0.5, y + menu_h + fonts.alignY("big", 2, scale) - fonts.getHeight("medium") * 1.5 + screen.bottom_offset
++			local x, y = x + menu_w * 0.5,
++					y + menu_h + fonts.alignY("big", 2, scale) - fonts.getHeight("medium") * 1.5 + screen.bottom_offset
+ 			local color = COLORS.dashboard_help
+ 			local opacity = math.easeOut(self.dashboard_fade) * screen.smoothAmount
+ 			
+@@ -709,7 +717,8 @@
+ 		if platform:isTrialMode() then
+ 			local screen = self.screen
+ 			
+-			video.renderTextSprites(localize.get("trial_mode"), tr_x, tr_y, 2, "medium", self.dashboard_fade * 128 * smoothAmount, col.r, col.g, col.b)
++			video.renderTextSprites(localize.get("trial_mode"), tr_x, tr_y, 2, "medium",
++				self.dashboard_fade * 128 * smoothAmount, col.r, col.g, col.b)
+ 			
+ 			return 24
+ 		end
+@@ -725,7 +734,8 @@
+ 			local h = 0
+ 			local screen = self.screen
+ 			
+-			video.renderTextSprites(backend:getLocalizedName(), tr_x, tr_y, 2, "small", self.dashboard_fade * 128 * smoothAmount, col.r, col.g, col.b)
++			video.renderTextSprites(backend:getLocalizedName(), tr_x, tr_y, 2, "small",
++				self.dashboard_fade * 128 * smoothAmount, col.r, col.g, col.b)
+ 			
+ 			h = h + 20
+ 			
+@@ -733,7 +743,8 @@
+ 				local state = backend:getLocalizedState()
+ 				
+ 				if state then
+-					video.renderTextSprites(state, tr_x, tr_y + h, 2, "small", self.dashboard_fade * 128 * smoothAmount, col.r * 0.75, col.g, col.b * 0.75, nil, 0.75)
++					video.renderTextSprites(state, tr_x, tr_y + h, 2, "small", self.dashboard_fade * 128 * smoothAmount,
++						col.r * 0.75, col.g, col.b * 0.75, nil, 0.75)
+ 					
+ 					h = h + 15
+ 				end
+@@ -741,7 +752,8 @@
+ 				local id = backend:getAppId()
+ 				
+ 				if id then
+-					video.renderTextSprites(id, tr_x, tr_y + h, 2, "small", self.dashboard_fade * 128 * smoothAmount, col.r * 0.75, col.g * 0.75, col.b * 0.75, nil, 0.75)
++					video.renderTextSprites(id, tr_x, tr_y + h, 2, "small", self.dashboard_fade * 128 * smoothAmount, col.r * 0.75,
++						col.g * 0.75, col.b * 0.75, nil, 0.75)
+ 					
+ 					h = h + 15
+ 				end
+@@ -749,7 +761,9 @@
+ 				local debug_methods = backend:get_interface("debug")
+ 				
+ 				if debug_methods then
+-					h = h + debug_methods.render_connections(tr_x, tr_y + h, 2, self.dashboard_fade * 128 * smoothAmount, col.r, col.g, col.b, 0.75)
++					h = h +
++					debug_methods.render_connections(tr_x, tr_y + h, 2, self.dashboard_fade * 128 * smoothAmount, col.r, col.g,
++						col.b, 0.75)
+ 				end
+ 			end
+ 			
+@@ -764,7 +778,8 @@
+ 		if platform:areCheatsEnabled() then
+ 			local imp = COLORS.important
+ 			
+-			video.renderTextSprites(localize.get("dashnode_cheats"), tr_x, tr_y, 2, "small", 128 * smoothAmount, imp.r, imp.g, imp.b)
++			video.renderTextSprites(localize.get("dashnode_cheats"), tr_x, tr_y, 2, "small", 128 * smoothAmount, imp.r, imp.g,
++				imp.b)
+ 			
+ 			return 24
+ 		end
+@@ -802,11 +817,13 @@
+ 				local alp = math_min(255, 255 * (1 + fade * 0.5))
+ 				local iconSize = sprite_width * icon_scale
+ 				
+-				video.renderSpriteState(SPRITES.masterAuthor, tr_x + iconSize * 0.5, tr_y + fonts.getHeight("small") * 0.5, icon_scale, 0, self.dashboard_fade * alp * smoothAmount, r, g, b)
++				video.renderSpriteState(SPRITES.masterAuthor, tr_x + iconSize * 0.5, tr_y + fonts.getHeight("small") * 0.5,
++					icon_scale, 0, self.dashboard_fade * alp * smoothAmount, r, g, b)
+ 				
+ 				tr_x = tr_x + iconSize
+ 				
+-				video.renderTextSprites(name, tr_x, tr_y, 0, "small", self.dashboard_fade * alp * smoothAmount, r, g, b, nil, nil, false, true)
++				video.renderTextSprites(name, tr_x, tr_y, 0, "small", self.dashboard_fade * alp * smoothAmount, r, g, b, nil, nil,
++					false, true)
+ 				
+ 				return fonts.getHeight("small", 1) + 4
+ 			end
+@@ -845,16 +862,22 @@
+ 		local level_exp_max = platform:getLevelExperienceSize(user_index)
+ 		local level = platform:getLevel(user_index)
+ 		local progress = platform:getExperienceProgress(user_index)
+-		local exp_title_text = TextElement:new(0, 0, localize.get("account_experience"), 1, "small", COLORS.experience_text, COLORS.experience_text_hovered, 1)
+-		local exp_text = TextElement:new(0, 0, tostring(math.clamp(level_exp, 0, level_exp_max)) .. " / " .. tostring(level_exp_max), 1, "small", COLORS.experience_text, COLORS.experience_text_hovered, 1)
+-		local exp_bar = ProgressBoxElement:new(0, 0, progress, canvas.pos_w * 0.075, fonts.getHeight("medium"), COLORS.experience, COLORS.experience_border, 2)
++		local exp_title_text = TextElement:new(0, 0, localize.get("account_experience"), 1, "small", COLORS.experience_text,
++			COLORS.experience_text_hovered, 1)
++		local exp_text = TextElement:new(0, 0,
++			tostring(math.clamp(level_exp, 0, level_exp_max)) .. " / " .. tostring(level_exp_max), 1, "small",
++			COLORS.experience_text, COLORS.experience_text_hovered, 1)
++		local exp_bar = ProgressBoxElement:new(0, 0, progress, canvas.pos_w * 0.075, fonts.getHeight("medium"),
++			COLORS.experience, COLORS.experience_border, 2)
+ 		
+ 		exp_layout:addChild(exp_title_text)
+ 		exp_layout:addChild(exp_text)
+ 		exp_layout:addChild(exp_bar)
+ 		
+-		local level_title_text = TextElement:new(0, 0, localize.get("account_level"), 1, "small", COLORS.experience_text, COLORS.experience_text_hovered, 1)
+-		local level_text = IconTextElement:new(0, 0, tostring(level), 1, "big", COLORS.experience, COLORS.experience_text_hovered, 0.9, SPRITES.level, 0.4, COLORS.experience_bg, COLORS.experience)
++		local level_title_text = TextElement:new(0, 0, localize.get("account_level"), 1, "small", COLORS.experience_text,
++			COLORS.experience_text_hovered, 1)
++		local level_text = IconTextElement:new(0, 0, tostring(level), 1, "big", COLORS.experience,
++			COLORS.experience_text_hovered, 0.9, SPRITES.level, 0.4, COLORS.experience_bg, COLORS.experience)
+ 		
+ 		level_text:setMargin(8)
+ 		level_layout:addChild(level_title_text)
+@@ -1000,8 +1023,10 @@
+ 								
+ 								motd_date:setMargin(0, 0, 0, 8)
+ 								
+-								local motd_title_text = TextElement:new(0, 0, "Twitter @" .. tweet.user.screen_name, 1, "medium", COLORS.motd_highlight, COLORS.motd_highlight, 1)
+-								local motd_text = AdvancedTextElement:new(0, 0, tweet.text, COLORS.motd, COLORS.motd_highlight, 1, canvas.pos_w * 0.15)
++								local motd_title_text = TextElement:new(0, 0, "Twitter @" .. tweet.user.screen_name, 1, "medium",
++									COLORS.motd_highlight, COLORS.motd_highlight, 1)
++								local motd_text = AdvancedTextElement:new(0, 0, tweet.text, COLORS.motd, COLORS.motd_highlight, 1,
++									canvas.pos_w * 0.15)
+ 								
+ 								motd_layout:addChild(motd_date)
+ 								motd_layout:addChild(motd_title_text)
+@@ -1101,7 +1126,8 @@
+ 			if num_visible > 0 then
+ 				local modsAnim = screen.modsAnim
+ 				
+-				video.renderTextSprites(localize.get("mods"), tr_x, tr_y, 2, "small", opp * 128 * modsAnim, mcol.r, mcol.g, mcol.b)
++				video.renderTextSprites(localize.get("mods"), tr_x, tr_y, 2, "small", opp * 128 * modsAnim, mcol.r, mcol.g,
++					mcol.b)
+ 				
+ 				tr_y = tr_y + 24
+ 				
+@@ -1159,12 +1185,15 @@
+ 		end
+ 		
+ 		if RELEASE and not self.show_version_build then
+-			video.renderTextSprites(_version, tr_xv, tr_y, 2, "small", screen.versionFade * 128 * smoothAmount * 0.5, col.r, col.g, col.b)
++			video.renderTextSprites(_version, tr_xv, tr_y, 2, "small", screen.versionFade * 128 * smoothAmount * 0.5, col.r,
++				col.g, col.b)
+ 		else
+ 			local w = video.getTextSpritesSize(_build, "small")
+ 			
+-			video.renderTextSprites(_build, tr_xv, tr_y, 2, "small", screen.versionFade * 255 * smoothAmount * 0.5, col.r, col.g, col.b, nil, 1)
+-			video.renderTextSprites(_version, tr_xv - w - 10, tr_y, 2, "small", screen.versionFade * 128 * smoothAmount * 0.5, col.r, col.g, col.b)
++			video.renderTextSprites(_build, tr_xv, tr_y, 2, "small", screen.versionFade * 255 * smoothAmount * 0.5, col.r,
++				col.g, col.b, nil, 1)
++			video.renderTextSprites(_version, tr_xv - w - 10, tr_y, 2, "small", screen.versionFade * 128 * smoothAmount * 0.5,
++				col.r, col.g, col.b)
+ 		end
+ 		
+ 		return 28
+diff -X exclude -rubN daisyMoon/defaultConfigs.lua moddedDaisyMoon/defaultConfigs.lua
+--- daisyMoon/defaultConfigs.lua	2023-11-30 02:17:06.624108474 +0100
++++ moddedDaisyMoon/defaultConfigs.lua	2023-12-18 17:31:42.080658613 +0100
+@@ -128,6 +128,7 @@
+ 	spriteListPath = "NIL",
+ 	team = "NIL",
+ 	mod = "NIL",
++	alloy = "NIL",
+ 	slot = "",
+ 	talk = "NIL",
+ 	account = "NIL"
+diff -X exclude -rubN daisyMoon/def_logic.lua moddedDaisyMoon/def_logic.lua
+--- daisyMoon/def_logic.lua	2023-11-30 02:17:06.629108459 +0100
++++ moddedDaisyMoon/def_logic.lua	2023-12-18 17:31:42.080658613 +0100
+@@ -60,9 +60,10 @@
+ 					end
+ 				end
+ 			else
+-				assert(def[method_key] == nil, method_key, "for logic", logic, "already preset in def", key)
++				--assert(def[method_key] == nil, method_key, "for logic", logic, "already preset in def", key)
+ 			end
+ 		else
++			-- skipping this assert and just applying the check for the following calls crashes the game eveytime?
+ 			assert(def[method_key] == nil, method_key, "for logic", logic, "already preset in def", key)
+ 			
+ 			def[method_key] = method
+diff -X exclude -rubN daisyMoon/editDialogs.lua moddedDaisyMoon/editDialogs.lua
+--- daisyMoon/editDialogs.lua	2023-11-30 02:17:06.614108503 +0100
++++ moddedDaisyMoon/editDialogs.lua	2023-12-18 17:31:42.080658613 +0100
+@@ -5688,3 +5688,512 @@
+ 	dialog:sortRiver(true, 5, 5)
+ 	dialog:centerOnParent()
+ end
++
++function editDialogs.createAlloyItemExplorer(title)
++	local dialog = gui.createComponent("dframe")
++
++	function dialog:onHide()
++		editDialogs.clearCurrent()
++	end
++
++	local itemName = ""
++	local tagName = ""
++
++-- not the best implementation but it works for now
++	function dialog:alloyRender()
++		local item = ITEMS[itemName]
++		local dx, dy, dw, dh = self:getRelativePosition()
++		local ix, iy, iw, ih = dx + dw, dy, dh / 2, dh
++
++		if item then
++			video.renderSpriteRectangle(ix - 1, iy, iw + 1, ih, 255, 219, 221, 222)
++			video.renderSpriteRectangle(ix, iy + 1, iw - 1, ih - 2, 255, 80, 90, 100)
++			if item.iconSprite then
++				video.renderSpriteState(item.iconSprite, ix + iw / 2, iy + iw / 2, 1, 0, 255, 255, 255, 255, false)
++			end
++			if item.sprite then
++				video.renderSpriteState(item.sprite, ix + iw / 2, iy + iw / 2 + iw, 1, 0, 255, 255, 255, 255, false)
++			end
++			if item.customSprites then
++				for name, sprite in pairs(item.customSprites) do
++					if name == "pieces" then
++						for pName, pSprite in pairs(sprite) do
++							video.renderSpriteState(pSprite, ix + iw / 2, iy + iw / 2 + iw, 1, 0, 255, 255, 255, 255, false)
++						end
++					else
++						video.renderSpriteState(sprite, ix + iw / 2, iy + iw / 2 + iw, 1, 0, 255, 255, 255, 255, false)
++					end
++				end
++			end
++		end
++	end
++
++	dialog:setText(WChar(title))
++	dialog.layout = gui.createComponent("layout", dialog)
++
++	local itemList = gui.createComponent("listbox", dialog)
++	itemList:setRelativePosition(5, 50, 200, 200)
++
++	local itemNames = table.copy(ALLOY_ITEM_NAMES)
++	table.sort(itemNames)
++	for i = 1, #itemNames do
++  	itemList:addTextItem(WChar(itemNames[i]))
++  end
++	itemList:setSelected(0)
++	itemList:setSelectable(true)
++
++	local tagList = gui.createComponent("listbox", dialog)
++	tagList:setRelativePosition(210, 50, 150, 200)
++
++	local dataList = gui.createComponent("listbox", dialog)
++	dataList:setRelativePosition(365, 50, 350, 200)
++
++	local dataField = gui.createComponent("editbox", dialog)
++	dataField:setRelativePosition(365, 25, 340, 20)
++
++	function dataField:update()
++  	local value = ALLOY_ITEMS_CLONE[itemName][tagName]
++		local type = type(value)
++		self:setText(WChar(type))
++		dataList:clear()
++		if type == "number" then
++			dataList:addTextItem(WChar(value))
++		elseif type == "string" then
++			dataList:addTextItem(WChar('"' .. value .. '"'))
++		elseif type == "boolean" then
++			if value then
++				dataList:addTextItem(WChar("True"))
++			else
++				dataList:addTextItem(WChar("False"))
++			end
++		elseif type == "table" then
++			for nKey, nValue in pairs(AlloyParseTable(value)) do
++				dataList:addTextItem(WChar(nValue))
++			end
++		elseif type == "function" then
++			for nKey, nValue in pairs(AlloyGetDebugFunction(value, 70)) do
++				dataList:addTextItem(WChar(nValue))
++			end
++		else
++			dataList:addTextItem(WChar("Unrecognised data structure"))
++		end
++  end
++
++	local itemField = gui.createComponent("editbox", dialog)
++	itemField:setSelectable(true)
++	itemField:setRelativePosition(5, 25, 190, 20)
++
++	function itemField:onApply()
++		local name = self:getText():toString()
++		itemName = name
++		tagList:update()
++  end
++
++	function itemList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++
++		itemField:setText(WChar(name))
++		itemName = name
++		tagList:update()
++	end
++
++	local tagField = gui.createComponent("editbox", dialog)
++	tagField:setSelectable(true)
++	tagField:setRelativePosition(210, 25, 140, 20)
++
++	function tagField:onApply()
++		local name = self:getText():toString()
++		tagName = name
++		dataField:update()
++  end
++
++	function tagList:update()
++		self:clear()
++		tagField:setText(WChar(""))
++		local item = itemName
++		if item then
++  		local itemTags = ALLOY_ITEMS_CLONE[item]
++			if itemTags then
++				local tags = {}
++    		local i = 1
++				for key, value in pairs(itemTags) do
++					tags[i] = key
++					i = i+1
++      	end
++				table.sort(tags)
++				for key, value in pairs(tags) do
++      		self:addTextItem(WChar(value))
++        end
++    	end
++		end
++		self:setSelected(0)
++		self:setSelectable(self:getItemCount() > 0)
++  end
++
++	function tagList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++
++		tagField:setText(WChar(name))
++		tagName = name
++		dataField:update()
++	end
++
++	dialog:setRelativePosition(0, 0, 710, 260)
++	dialog:centerOnParent()
++
++	tagList:update()
++
++	return dialog
++end
++
++function editDialogs.createAlloyEditItemDialog(title, item, callbackObject)
++	local dialog = gui.createComponent("dframe")
++
++	function dialog:onHide()
++		editDialogs.clearCurrent()
++	end
++
++	dialog:setText(WChar(title))
++	dialog.layout = gui.createComponent("layout", dialog)
++	dialog.item = table.copy(item or {})
++	local selectedTagName = ""
++
++	local nameLabel = gui.createComponent("label", dialog)
++	nameLabel:setRelativePosition(210, 35, 150, 20)
++
++	function nameLabel:update()
++		if dialog.item.name == "" then
++			self:setText(WChar("No Item selected!"))
++		else
++			self:setText(WChar(dialog.item.name))
++		end
++	end
++
++	local inheritLabel = gui.createComponent("label", dialog)
++	inheritLabel:setRelativePosition(210, 23, 150, 20)
++
++	function inheritLabel:update()
++  	if dialog.item.inherits == "" then
++			self:setText(WChar("Doesn't inherit data!"))
++		else
++			self:setText(WChar(dialog.item.inherits))
++		end
++  end
++
++	local nameField = gui.createComponent("editbox", dialog)
++	nameField:setSelectable(true)
++	nameField:setRelativePosition(5, 25, 190, 20)
++
++	local tagField = gui.createComponent("editbox", dialog)
++	tagField:setSelectable(true)
++	tagField:setRelativePosition(365, 255, 140, 20)
++
++	local nameList = gui.createComponent("listbox", dialog)
++	nameList:setSelectable(true)
++	nameList:setRelativePosition(5, 50, 200, 200)
++
++	local itemNames = table.copy(ALLOY_ITEM_NAMES)
++	table.sort(itemNames)
++	for i = 1, #itemNames do
++  	nameList:addTextItem(WChar(itemNames[i]))
++  end
++
++	local itemTagList = gui.createComponent("listbox", dialog)
++	itemTagList:setRelativePosition(210, 50, 150, 200)
++
++	local tagNameLabel = gui.createComponent("label", dialog)
++	tagNameLabel:setRelativePosition(170, 280, 335, 20)
++
++	function tagNameLabel:update()
++		local tag = dialog.item.tags[selectedTagName]
++		if tag then
++			self:setText(WChar(dialog.item.name .. "." .. selectedTagName))
++		else
++			self:setText(WChar("No tag selected!"))
++		end
++  end
++
++	local tagBoolList = gui.createComponent("radiolist", dialog)
++	tagBoolList:setRelativePosition(105, 260, 50, 20)
++	tagBoolList:addRadioButton(WChar("true"))
++	tagBoolList:addRadioButton(WChar("False"))
++
++	function tagBoolList:update()
++		self:setVisible(false)
++		local tag = dialog.item.tags[selectedTagName]
++		if tag then
++			local type = tag.type
++			local value = tag.value
++			if type == "boolean" then
++				self:setVisible(true)
++				self:setSelection(value and 0 or 1)
++			end
++  	end
++  end
++
++	function tagBoolList:onChange()
++		local tag = dialog.item.tags[selectedTagName]
++		if tag then
++			local type = tag.type
++			if type == "boolean" then
++				tag.value = self:getSelection() == 1
++			else
++				print("Set tag bool value on non bool tag!")
++			end
++		end
++	end
++
++	local tagValueField = gui.createComponent("editbox", dialog)
++	tagValueField:setRelativePosition(110, 295, 395, 20)
++
++	function tagValueField:update()
++		self:setVisible(true)
++		local tag = dialog.item.tags[selectedTagName]
++		if tag then
++			local tType = tag.type
++			local tValue = tag.value
++			if tType == "number" then
++				if tValue then
++					self:setText(WChar(tValue))
++				end
++			elseif tType == "string" then
++				if tValue then
++					self:setText(WChar(tValue))
++				end
++			elseif tType == "table" then
++				if type(tValue) == "string" then
++					self:setText(WChar(tValue))
++				else
++					self:setText(WChar("Unchanged"))
++				end
++			elseif tType == "function" then
++				if type(tValue) == "string" then
++					self:setText(WChar(tValue))
++				else
++					self:setText(WChar("Unchanged"))
++				end
++			else
++				self:setText(WChar(""))
++				self:setVisible(false)
++			end
++  	end
++  end
++
++	function tagValueField:onApply()
++		local tag = dialog.item.tags[selectedTagName]
++		if tag then
++			local type = tag.type
++			local value = self:getText():toString()
++			if type == "number" then
++				local numValue = tonumber(value)
++				if numValue then
++					tag.value = numValue
++				else
++					print("Unable to set non number value to tag with number type!")
++				end
++			elseif type == "string" then
++				tag.value = value
++			elseif type == "boolean" then
++				print("Set arbitrary tag value on bool tag!")
++			elseif type == "table" then
++				if value ~= "Unchanged" then
++					tag.value = value
++				end
++			elseif type == "function" then
++				if value ~= "Unchanged" then
++					tag.value = value
++				end
++			else
++				print("Set tag value on unrecognised tag type!")
++			end
++		end
++  end
++
++	local tagTypeList = gui.createComponent("listbox", dialog)
++	tagTypeList:setRelativePosition(5, 255, 100, 60)
++	tagTypeList:setSelectable(true)
++	tagTypeList:addTextItem(WChar("number"))
++	tagTypeList:addTextItem(WChar("string"))
++	tagTypeList:addTextItem(WChar("boolean"))
++	tagTypeList:addTextItem(WChar("table"))
++	tagTypeList:addTextItem(WChar("function"))
++
++	function tagTypeList:update()
++		local tag = dialog.item.tags[selectedTagName]
++		if tag then
++			local type = tag.type
++			if type == "number" then
++    		self:setSelected(0)
++			elseif type == "string" then
++				self:setSelected(1)
++			elseif type == "boolean" then
++				self:setSelected(2)
++			elseif type == "table" then
++				self:setSelected(3)
++			elseif type == "function" then
++				self:setSelected(4)
++    	end
++		end
++	end
++
++	function tagTypeList:onRepeat()
++		local tag = dialog.item.tags[selectedTagName]
++		local index = self:getSelected()
++		local type = self:getTextItem(index):toString()
++		if tag then
++			if tag.type ~= type then
++				tag.type = type
++				tag.value = nil
++			end
++		end
++		tagValueField:update()
++		tagBoolList:update()
++	end
++
++	function itemTagList:onChange()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++
++		selectedTagName = name
++		tagValueField:update()
++		tagNameLabel:update()
++		tagTypeList:update()
++		tagBoolList:update()
++  end
++
++	function itemTagList:update()
++		self:clear()
++		if dialog.item then
++  		local itemTags = dialog.item.tags
++			if itemTags then
++				local tags = {}
++    		local i = 1
++				for key, value in pairs(itemTags) do
++					tags[i] = key
++					i = i+1
++      	end
++				table.sort(tags)
++				for key, value in pairs(tags) do
++      		self:addTextItem(WChar(value))
++        end
++    	end
++		end
++		self:setSelected(0)
++		self:setSelectable(self:getItemCount() > 0)
++
++		selectedTagName = ""
++		tagValueField:update()
++		tagNameLabel:update()
++		tagTypeList:update()
++		tagBoolList:update()
++  end
++
++	local tagList = gui.createComponent("listbox", dialog)
++	tagList:setRelativePosition(365, 50, 150, 200)
++
++	function tagList:update()
++		self:clear()
++		local tags = {}
++		local i = 1
++		for key, value in pairs(ALLOY_ITEM_ATTRIBUTES) do
++			if dialog.item.tags[key] == nil then
++				tags[i] = key
++				i = i+1
++			end
++		end
++		table.sort(tags)
++		for key, value in pairs(tags) do
++				self:addTextItem(WChar(value))
++    end
++		self:setSelected(0)
++		self:setSelectable(self:getItemCount() > 0)
++  end
++
++	function tagList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++		if not dialog.item.tags[name] then
++			dialog.item.tags[name] = {type = "string", value = ""}
++		end
++		self:update()
++		itemTagList:update()
++	end
++
++	function itemTagList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++		dialog.item.tags[name] = nil
++		self:update()
++		tagList:update()
++	end
++	
++	local function loadItemData(itemName)
++  	local itemTags = ALLOY_ITEMS_CLONE[itemName]
++		if itemTags then
++			dialog.item.inherits = ""
++			dialog.item.tags = {}
++  		for key, value in pairs(itemTags) do
++     		dialog.item.tags[key] = {type = type(value), value = value}
++      end
++    end
++		return itemTags ~= nil
++	end
++
++	function nameField:onApply()
++		local name = self:getText():toString()
++		if not loadItemData(name) then
++			dialog.item.inherits = dialog.item.name
++		end
++  	dialog.item.name = name
++		inheritLabel:update()
++		nameLabel:update()
++		itemTagList:update()
++		tagList:update()
++  end
++
++	function tagField:onApply()
++		local name = self:getText():toString()
++		if not dialog.item.tags[name] then
++			dialog.item.tags[name] = {type = "string", value = ""}
++		end
++		itemTagList:update()
++		tagList:update()
++	end
++	
++	function nameList:onRepeat()
++		local index = self:getSelected()
++		local name = self:getTextItem(index):toString()
++		nameField:setText(WChar(name))
++		if not loadItemData(name) then
++			dialog.item.inherits = dialog.item.name
++		end
++		dialog.item.name = name
++		inheritLabel:update()
++		nameLabel:update()
++		itemTagList:update()
++		tagList:update()
++  end
++
++	local applyButton = gui.createComponent("button", dialog)
++	
++	function applyButton:onClick()
++		if dialog.item.name == "" or string.find(dialog.item.name, " ")  then
++			return nil
++		end
++		callbackObject:updateDefinition(dialog.item)
++	end
++
++	applyButton:setText(WChar("Apply"))
++	applyButton:setRelativePosition(385, 25, 50, 20)
++
++	dialog:setRelativePosition(0, 0, 510, 320)
++	dialog:centerOnParent()
++
++
++	inheritLabel:update()
++	nameLabel:update()
++	itemTagList:update()
++	tagList:update()
++end
+diff -X exclude -rubN daisyMoon/editMenuBar.lua moddedDaisyMoon/editMenuBar.lua
+--- daisyMoon/editMenuBar.lua	2023-11-30 02:17:06.630108456 +0100
++++ moddedDaisyMoon/editMenuBar.lua	2023-12-18 17:31:42.080658613 +0100
+@@ -2436,7 +2436,142 @@
+ 		}
+ 	}
+ }
++-- alloy entry tree
++TREES.alloy = {
++	{
++		name = "File",
++		options = {
++			{},
++			{
++				shortcut = 78,
++				name = "New (Ctrl+N)",
++				shortcutOperator = 17,
++				action = function(b)
++					resources.new("alloy", b.state)
++				end
++			},
++			{
++				shortcut = 79,
++				name = "Open (Ctrl+O)",
++				shortcutOperator = 17,
++				action = function(b)
++					resources.open("alloy", b.state)
++				end
++			},
++			{},
++			{
++				shortcut = 83,
++				name = "Save (Ctrl+S)",
++				shortcutOperator = 17,
++				action = function(b)
++					local ok, msg = resources.save("alloy", b.state.alloy, b.state, true)
+ 
++					if msg then
++						b.state:print(msg)
++					end
++				end
++			},
++			{
++				name = "Save As...",
++				action = function(b)
++					if b.state.alloy then
++						resources.saveAs("alloy", b.state.alloy, b.state, true)
++
++					return true
++					else
++						b.state:print("No Alloy to save")
++						return false
++					end
++				end
++			},
++			{},
++			{
++				shortcut = 112,
++				name = "Close Editor (F1)",
++				action = function(b)
++					app.switchMode("devmenu")
++				end
++			},
++			{},
++			{
++				name = "Exit",
++				action = function(b)
++					daisy.exitGame()
++				end
++			}
++		}
++	},
++	{
++		name = "Edit",
++		options = {
++			{},
++			{
++				shortcut = 90,
++				name = "Undo (Ctrl+Z)",
++				shortcutOperator = 17,
++				action = function(b)
++					return b.state:undoBack()
++				end
++			},
++			{
++				shortcut = 89,
++				name = "Redo (Ctrl+Y)",
++				shortcutOperator = 17,
++				action = function(b)
++					return b.state:undoForward()
++				end
++			},
++		}
++	},
++	{
++		name = "Tools",
++		options = {
++			{},
++			-- with the new system for item browsing and indexing reloading data isn't required
++			--{
++			--	shortcut = 82,
++			--	name = "Reload data (Shift+R)",
++			--	shortcutOperator = 16,
++			--	action = function (b)
++      --  	UpdateAlloyItemData(ALLOY_ITEMS_CLONE)
++      --  end
++			--},
++			--{
++			--	shortcut = 76,
++			--	name = "Loaded data (Shift+L)",
++			--	shortcutOperator = 16,
++			--	action = function (b)
++      --  	UpdateAlloyItemData(ITEMS)
++      --  end
++			--},
++			--{},
++			{
++				shortcut = 70,
++				name = "Force load (Caps+F)",
++				shortcutOperator = 20,
++				action = function (b)
++					local alloy = b.state.alloy
++					alloy:moduleLoad()
++					local name = alloy:getLocalizedName()
++					if name == "" then
++						name = "selected alloy"
++					end
++					print("Forcfully loaded " .. name .. " !")
++        end
++			},
++			{},
++			{
++				shortcut = 73,
++				name = "Item explorer (Shift+I)",
++				shortcutOperator = 16,
++				action = function(b)
++        	RegisterAlloyRenderer(_editDialogs.createAlloyItemExplorer("Item explorer"))
++        end
++			}
++		}
++	}
++}
++-- end of alloy editor tree
+ local mods_menu = {
+ 	name = "Mods",
+ 	options = {
+@@ -2612,7 +2747,16 @@
+ 					app.switchMode("talk")
+ 				end
+ 			},
+-			{},
++			{}, -- custom menus
++			{
++				shortcut = 114,
++				name = "Alloy Editor (CTRL+F3)",
++				shortcutOperator = 17,
++				action = function (b)
++        	app.switchMode("alloy")
++        end
++			},
++			{}, -- end of custom menus
+ 			{
+ 				name = "Exit",
+ 				action = function(b)
+diff -X exclude -rubN daisyMoon/gameDependencies.lua moddedDaisyMoon/gameDependencies.lua
+--- daisyMoon/gameDependencies.lua	2023-11-30 02:17:06.625108471 +0100
++++ moddedDaisyMoon/gameDependencies.lua	2023-12-18 17:31:42.082658610 +0100
+@@ -174,3 +174,4 @@
+ dofile("sorting.lua")
+ dofile("actionDefinitions.lua")
+ dofile("mods.lua")
++dofile("alloyDependencies.lua")
+diff -X exclude -rubN daisyMoon/game.lua moddedDaisyMoon/game.lua
+--- daisyMoon/game.lua	2023-11-30 02:17:06.613108506 +0100
++++ moddedDaisyMoon/game.lua	2023-12-18 17:31:42.082658610 +0100
+@@ -52,6 +52,7 @@
+ 	ARTICLES[Actor.getArticleId(index)] = true
+ end
+ 
++-- strange may have to be reloaded
+ for index, item in pairs(ITEMS) do
+ 	ARTICLES[Item.getArticleId(index)] = true
+ end
+diff -X exclude -rubN daisyMoon/graphNode.lua moddedDaisyMoon/graphNode.lua
+--- daisyMoon/graphNode.lua	2023-11-30 02:17:06.624108474 +0100
++++ moddedDaisyMoon/graphNode.lua	2023-12-18 17:31:42.082658610 +0100
+@@ -110,6 +110,13 @@
+ 		}
+ 	}
+ }
++GRAPH_NODES.alloy = {
++	class = "Alloy",
++	icon = "",
++	resource = true,
++	children = {},
++	lists = {}
++}
+ GRAPH_NODES.adventure = {
+ 	class = "Adventure",
+ 	icon = "iconAdventure",
+Binary files daisyMoon/info.pak.disabled and moddedDaisyMoon/info.pak.disabled differ
+diff -X exclude -rubN daisyMoon/items.lua moddedDaisyMoon/items.lua
+--- daisyMoon/items.lua	2023-11-30 02:17:06.618108491 +0100
++++ moddedDaisyMoon/items.lua	2023-12-18 17:31:42.084658608 +0100
+@@ -4,8 +4,8 @@
+ 
+ local COMP = dofile("item_comp.lua")
+ local BT_MUL = 1
+-local soundToVisFactor = 0.0022222222222222222
+-local recoilToVisFactor = 0.4
++SoundToVisFactor = 0.0022222222222222222
++RecoilToVisFactor = 0.4
+ local math_length = math.length
+ local math_approachAngle = math.approachAngle
+ local math_pi = math.pi
+@@ -93,7 +93,7 @@
+ 	
+ 	local rec = self:getRecoilAmount()
+ 	
+-	actor:setStealthPenalty(self:getSoundRange() * soundToVisFactor + rec * recoilToVisFactor)
++	actor:setStealthPenalty(self:getSoundRange() * SoundToVisFactor + rec * RecoilToVisFactor)
+ 	self:applyRandomRecoil(actor, rec)
+ 	self:applyRecoilFatigue(self:getRecoilFatigue())
+ end
+@@ -291,14 +291,18 @@
+ function METH:renderShinyItem(x, y, angle, r, g, b, facingRight, glow)
+ 	video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 	
+-	local nx, ny = x + math_cos(angle + self.def.shineAngle) * self.def.shineOffset, y + math_sin(angle + self.def.shineAngle) * self.def.shineOffset
++	local nx, ny = x + math_cos(angle + self.def.shineAngle) * self.def.shineOffset,
++			y + math_sin(angle + self.def.shineAngle) * self.def.shineOffset
+ 	
+-	video.renderSpriteState(self.def.customSprites.shine, nx, ny, 1 - math_safeRandom() * 0.08, math_pi * 0.25, math_abs(math_cos(angle + math_safeRandom() * 0.7)) * 255, r, g, b, not facingRight)
++	video.renderSpriteState(self.def.customSprites.shine, nx, ny, 1 - math_safeRandom() * 0.08, math_pi * 0.25,
++		math_abs(math_cos(angle + math_safeRandom() * 0.7)) * 255, r, g, b, not facingRight)
+ end
+ 
+ function METH:renderItemWithGlow(x, y, angle, r, g, b, facingRight, glow)
+ 	video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+-	video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle, math_abs(math_cos(_time * math_pi + math_pi * 2 * math_seededRandomNumber(self.countId))) * 255, 255, 255, 255, not facingRight)
++	video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle,
++		math_abs(math_cos(_time * math_pi + math_pi * 2 * math_seededRandomNumber(self.countId))) * 255, 255, 255, 255,
++		not facingRight)
+ end
+ 
+ function METH:feedbackItemRender(x, y, angle, r, g, b, facingRight, glow)
+@@ -523,7 +527,8 @@
+ 						for i = 1, (math_random(2) + 3) * details do
+ 							local fx = actor:emitFxAt("jetBulletSpark", x, y)
+ 							
+-							fx:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi, math_random(4000))
++							fx:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi,
++								math_random(4000))
+ 							fx:setAngle(math_random() * math_pi * 2)
+ 							fx:setTime(math_random() * 0.15)
+ 						end
+@@ -550,7 +555,8 @@
+ 								for i = 1, math_random(2) * details do
+ 									local fx = actor:emitFxAt("jetBulletSpark", x, y)
+ 									
+-									fx:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi, math_random(300))
++									fx:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi,
++										math_random(300))
+ 									fx:setAngle(math_random() * math_pi * 2)
+ 									fx:setTime(math_random() * 1)
+ 								end
+@@ -753,36 +759,47 @@
+ 	local frontMove = fTimer * incrementDist
+ 	
+ 	if frontMove > 0 then
+-		video.renderSpriteState(self.def.customSprites.shield_layer, x + math_cos(actorAngle) * (baseDist * fTimer), y + math_sin(actorAngle) * (baseDist * fTimer), 1, actorAngle, 255, 255, 255, 255)
++		video.renderSpriteState(self.def.customSprites.shield_layer, x + math_cos(actorAngle) * (baseDist * fTimer),
++			y + math_sin(actorAngle) * (baseDist * fTimer), 1, actorAngle, 255, 255, 255, 255)
+ 	end
+ 	
+ 	if self.frontLayers > 0 then
+ 		for i = 0, self.frontLayers - 1 do
+-			video.renderSpriteState(self.def.customSprites.shield_layer, x + math_cos(actorAngle) * (frontMove + baseDist + incrementDist * i), y + math_sin(actorAngle) * (baseDist + incrementDist * i), 1, actorAngle, 255, 255, 255, 255)
++			video.renderSpriteState(self.def.customSprites.shield_layer,
++				x + math_cos(actorAngle) * (frontMove + baseDist + incrementDist * i),
++				y + math_sin(actorAngle) * (baseDist + incrementDist * i), 1, actorAngle, 255, 255, 255, 255)
+ 		end
+ 	else
+-		video.renderSpriteState(self.def.customSprites.shield_warning, x + math_cos(actorAngle) * warnDist, y + math_sin(actorAngle) * warnDist, 0.5 + math_abs(math_sin(self.blinkTimer * 10)) * 0.5, actorAngle, 96 + math_abs(math_sin(self.blinkTimer * 10)) * 64, 255, 255, 255)
++		video.renderSpriteState(self.def.customSprites.shield_warning, x + math_cos(actorAngle) * warnDist,
++			y + math_sin(actorAngle) * warnDist, 0.5 + math_abs(math_sin(self.blinkTimer * 10)) * 0.5, actorAngle,
++			96 + math_abs(math_sin(self.blinkTimer * 10)) * 64, 255, 255, 255)
+ 	end
+ 	
+ 	local bTimer = 1 - (1 - self.backTimer) * (1 - self.backTimer)
+ 	local backMove = bTimer * incrementDist
+ 	
+ 	if backMove > 0 then
+-		video.renderSpriteState(self.def.customSprites.shield_layer, x + math_cos(actorAngle - math_pi) * (baseDist * bTimer), y + math_sin(actorAngle - math_pi) * (baseDist * bTimer), 1, actorAngle - math_pi, 255, 255, 255, 255)
++		video.renderSpriteState(self.def.customSprites.shield_layer, x + math_cos(actorAngle - math_pi) * (baseDist * bTimer),
++			y + math_sin(actorAngle - math_pi) * (baseDist * bTimer), 1, actorAngle - math_pi, 255, 255, 255, 255)
+ 	end
+ 	
+ 	if self.backLayers > 0 then
+ 		for i = 0, self.backLayers - 1 do
+-			video.renderSpriteState(self.def.customSprites.shield_layer, x + math_cos(actorAngle - math_pi) * (backMove + baseDist + incrementDist * i), y + math_sin(actorAngle - math_pi) * (baseDist + incrementDist * i), 1, actorAngle - math_pi, 255, 255, 255, 255)
++			video.renderSpriteState(self.def.customSprites.shield_layer,
++				x + math_cos(actorAngle - math_pi) * (backMove + baseDist + incrementDist * i),
++				y + math_sin(actorAngle - math_pi) * (baseDist + incrementDist * i), 1, actorAngle - math_pi, 255, 255, 255, 255)
+ 		end
+ 	else
+-		video.renderSpriteState(self.def.customSprites.shield_warning, x + math_cos(actorAngle - math_pi) * warnDist, y + math_sin(actorAngle - math_pi) * warnDist, 0.5 + math_abs(math_sin(self.blinkTimer * 10)) * 0.5, actorAngle - math_pi, 96 + math_abs(math_sin(self.blinkTimer * 10)) * 64, 255, 255, 255)
++		video.renderSpriteState(self.def.customSprites.shield_warning, x + math_cos(actorAngle - math_pi) * warnDist,
++			y + math_sin(actorAngle - math_pi) * warnDist, 0.5 + math_abs(math_sin(self.blinkTimer * 10)) * 0.5,
++			actorAngle - math_pi, 96 + math_abs(math_sin(self.blinkTimer * 10)) * 64, 255, 255, 255)
+ 	end
+ end
+ 
+ local function portableBounceSensor(object, impact)
+ 	if object.time > 0.6 and impact.target and impact.target.dx ~= nil and impact.target.dy ~= nil and (impact.target._category == "actor" or impact.target._category == "object") and not impact.target.lastOnGround then
+-		local diff = math_abs(math_angleDifference(object.angle - math_pi * 0.5, math_angleBetweenPoints(object.x, object.y, impact.target.x, impact.target.y)))
++		local diff = math_abs(math_angleDifference(object.angle - math_pi * 0.5,
++			math_angleBetweenPoints(object.x, object.y, impact.target.x, impact.target.y)))
+ 		local mod = 1
+ 		
+ 		if diff > math_pi * 0.5 then
+@@ -814,12 +831,14 @@
+ 
+ local function renderGlowingLight(self, x, y, angle, r, g, b, facingRight, glow)
+ 	video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+-	video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 200 + math_cos(_time * 3) * 54, 255, 255, 255, not facingRight)
++	video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 200 + math_cos(_time * 3) * 54, 255, 255, 255,
++		not facingRight)
+ end
+ 
+ local function renderGlowingBattery(self, x, y, angle, r, g, b, facingRight, glow)
+ 	video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+-	video.renderSpriteState(self.def.customSprites[self.def.glowSprite], x, y, 1, angle, (128 + math_cos(_time * 3) * 127) * glow, 255, 255, 255, not facingRight)
++	video.renderSpriteState(self.def.customSprites[self.def.glowSprite], x, y, 1, angle,
++		(128 + math_cos(_time * 3) * 127) * glow, 255, 255, 255, not facingRight)
+ end
+ 
+ local function genericAmmoAdded(self, actor, ref, amount)
+@@ -1188,7 +1207,8 @@
+ 		end
+ 	end,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	getRecoilFatigue = function(self)
+ 		return self.upgrades.pointer and 0.5 or 1
+@@ -2512,7 +2532,8 @@
+ 		return math_pi
+ 	end,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and (self.upgrades.magazine.def.ammoCapacity or 0) * self.upgrades.magazine.level or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and (self.upgrades.magazine.def.ammoCapacity or 0) * self.upgrades.magazine.level or 0)
+ 	end,
+ 	getBulletTimeFactor = function(self)
+ 		if self.upgrades.silencer then
+@@ -2914,7 +2935,8 @@
+ 		return math_pi
+ 	end,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and (self.upgrades.magazine.def.ammoCapacity or 0) * self.upgrades.magazine.level or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and (self.upgrades.magazine.def.ammoCapacity or 0) * self.upgrades.magazine.level or 0)
+ 	end,
+ 	getBulletTimeFactor = function(self)
+ 		return 0.75
+@@ -3425,7 +3447,8 @@
+ 		return math_pi
+ 	end,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and (self.upgrades.magazine.def.ammoCapacity or 0) * self.upgrades.magazine.level or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and (self.upgrades.magazine.def.ammoCapacity or 0) * self.upgrades.magazine.level or 0)
+ 	end,
+ 	getBulletTimeFactor = function(self)
+ 		return 0.75
+@@ -3828,7 +3851,8 @@
+ 		local prg = self.hammerAnim
+ 		local ff = facingToFlipFactor(facingRight)
+ 		
+-		video.renderSpriteState(self.def.customSprites.hammer, x, y, 1, angle - prg * math_pi * 0.3 * ff, 255, r, g, b, not facingRight)
++		video.renderSpriteState(self.def.customSprites.hammer, x, y, 1, angle - prg * math_pi * 0.3 * ff, 255, r, g, b,
++			not facingRight)
+ 		METH.renderGenericUpgradableItem(self, x, y, angle, r, g, b, facingRight, glow)
+ 	end,
+ 	updateMethod = function(self, actor, time)
+@@ -4180,7 +4204,8 @@
+ 	},
+ 	aimArc = math_pi,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	getSoundRange = function(self)
+ 		return self.upgrades.silencer and 50 or 800
+@@ -4477,7 +4502,8 @@
+ 		
+ 		local ff = facingToFlipFactor(facingRight)
+ 		local prg = math_sin(math_pi * math_min(1, self.hammerAnim * 6)) * 5
+-		local ex, ey = x + math_cos(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg, y + math_sin(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg
++		local ex, ey = x + math_cos(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg,
++				y + math_sin(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg
+ 		
+ 		video.renderSpriteState(self.def.customSprites.hammer, ex, ey, 1, angle, 255, r, g, b, not facingRight)
+ 		
+@@ -4763,7 +4789,8 @@
+ 		}
+ 	},
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	getSoundRange = function(self)
+ 		return self.upgrades.silencer and 100 or 800
+@@ -5072,7 +5099,8 @@
+ 	},
+ 	aimArc = math_pi,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.barrel and self.upgrades.barrel.level * self.upgrades.barrel.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.barrel and self.upgrades.barrel.level * self.upgrades.barrel.def.ammoCapacity or 0)
+ 	end,
+ 	getCooldown = function(self, actor)
+ 		return self.upgrades.trigger and self.def.cooldown * 0.65 or self.def.cooldown
+@@ -5094,7 +5122,9 @@
+ 		if trigger then
+ 			local ff = facingToFlipFactor(facingRight)
+ 			
+-			trigger.def.renderMethod(trigger, x + math_cos(angle - math_pi * 0.5 - ff * math_pi * 0.25) * 8, y + math_sin(angle - math_pi * 0.5 - ff * math_pi * 0.25) * 8, angle - self.hammerAnim * math_pi * 0.25 * ff, r, g, b, facingRight, glow)
++			trigger.def.renderMethod(trigger, x + math_cos(angle - math_pi * 0.5 - ff * math_pi * 0.25) * 8,
++				y + math_sin(angle - math_pi * 0.5 - ff * math_pi * 0.25) * 8, angle - self.hammerAnim * math_pi * 0.25 * ff, r,
++				g, b, facingRight, glow)
+ 		end
+ 		
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+@@ -5381,7 +5411,8 @@
+ 	},
+ 	aimArc = math_pi * 0.6,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	bulletSpeed = 75 * sluggerBulletMod,
+ 	useMethod = METH.genericWeaponUse,
+@@ -5400,7 +5431,8 @@
+ 		
+ 		local prg = -self.hammerAnim * 7
+ 		local ff = facingToFlipFactor(facingRight)
+-		local ex, ey = x + math_cos(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg, y + math_sin(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg
++		local ex, ey = x + math_cos(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg,
++				y + math_sin(angle - math_pi * 0.5 - math_pi * 0.5 * ff) * prg
+ 		
+ 		video.renderSpriteState(cusprites.sluggerHammer, ex, ey, 1, angle, 255, r, g, b, not facingRight)
+ 		video.renderSpriteState(cusprites.sluggerFront, x, y, 1, angle, 255, r, g, b, not facingRight)
+@@ -5632,7 +5664,8 @@
+ 	useFailMethod = METH.genericFailUse,
+ 	initMethod = METH.initGenericWeapon,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	getOffence = function(self)
+ 		return self.upgrades.proximityFuse and 1 or 0.5
+@@ -5913,7 +5946,8 @@
+ 		}
+ 	},
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	getAimRange = function(self)
+ 		return self.upgrades.extendedBarrel and 1200 or 1020
+@@ -6238,7 +6272,8 @@
+ 	initMethod = METH.initGenericWeapon,
+ 	renderMethod = METH.renderGenericUpgradableItem,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	rackAngle = -math_pi * 0.5,
+ 	getAimRange = function(self)
+@@ -6576,7 +6611,8 @@
+ 	initMethod = METH.initGenericWeapon,
+ 	renderMethod = METH.renderGenericUpgradableItem,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	rackAngle = -math_pi * 0.5,
+ 	getAimRange = function(self)
+@@ -6918,7 +6954,8 @@
+ 	renderMethod = METH.renderGenericUpgradableItem,
+ 	updateMethod = updateGenericUpgradableWeapon,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	rackAngle = -math_pi * 0.5,
+ 	getFullAimRange = COMP.scope.usingWeapon,
+@@ -7246,7 +7283,8 @@
+ 		return self.upgrades.proximity and "proximity" or nil
+ 	end,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	rackAngle = -math_pi * 0.5,
+ 	getFullAimRange = COMP.scope.usingWeapon,
+@@ -7349,7 +7387,8 @@
+ 	},
+ 	renderMethod = function(self, x, y, angle, r, g, b, facingRight, glow)
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+-		video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle, 200 + math_cos(_time * 3) * 55, 255, 255, 255, not facingRight)
++		video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle, 200 + math_cos(_time * 3) * 55, 255, 255, 255,
++			not facingRight)
+ 	end,
+ 	ai = {}
+ }
+@@ -7794,7 +7833,8 @@
+ 	getFullAimRange = COMP.scope.usingWeapon,
+ 	getMaxAimRange = COMP.scope.maxUsingWeapon,
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * (self.upgrades.magazine.def.ammoCapacity or 0) or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * (self.upgrades.magazine.def.ammoCapacity or 0) or 0)
+ 	end,
+ 	getPower = function(self)
+ 		return 1 + (self.upgrades.power and self.upgrades.power.level * 0.5 or 0)
+@@ -8263,7 +8303,8 @@
+ 		}
+ 	},
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * (self.upgrades.magazine.def.ammoCapacity or 0) or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * (self.upgrades.magazine.def.ammoCapacity or 0) or 0)
+ 	end,
+ 	initRuntimeMethod = function(self)
+ 		self.gasFx = {}
+@@ -8333,7 +8374,8 @@
+ 				local healing = false
+ 				
+ 				if actor.map then
+-					local foundList = actor:findRangeArcObjectsInClassification(range, math_pi * 0.25, angle, "healable", nanoObjPumpCondition)
++					local foundList = actor:findRangeArcObjectsInClassification(range, math_pi * 0.25, angle, "healable",
++						nanoObjPumpCondition)
+ 					
+ 					if foundList then
+ 						local healed = #foundList
+@@ -8873,10 +8915,12 @@
+ 		"use_limited_by_ammo"
+ 	},
+ 	getMaxAmmo = function(self)
+-		return (self.upgrades.chargeCell and self.upgrades.chargeCell.level * self.upgrades.chargeCell.def.ammoCapacity or 0) + 10
++		return (self.upgrades.chargeCell and self.upgrades.chargeCell.level * self.upgrades.chargeCell.def.ammoCapacity or 0) +
++		10
+ 	end,
+ 	getPower = function(self)
+-		return ((self.upgrades.powerCrystal and self.upgrades.powerCrystal.level * 0.75 or 0) + 0.75) * (0.75 + self.ammo / self:getMaxAmmo() * 0.25)
++		return ((self.upgrades.powerCrystal and self.upgrades.powerCrystal.level * 0.75 or 0) + 0.75) *
++		(0.75 + self.ammo / self:getMaxAmmo() * 0.25)
+ 	end,
+ 	updateMethod = function(self, actor, time)
+ 		genericBeamWeaponUpdate(self, actor, time)
+@@ -8903,9 +8947,11 @@
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+ 		if self.maxedFill then
+-			video.renderSpriteState(cusprites.beamgun_light, x, y, 1, angle, 255, math_min(255, r / 3 + 10 * self.lightAmount), math_min(255, g / 3 + 255 * self.lightAmount), math_min(255, b / 3 + 20 * self.lightAmount), not facingRight)
++			video.renderSpriteState(cusprites.beamgun_light, x, y, 1, angle, 255, math_min(255, r / 3 + 10 * self.lightAmount),
++				math_min(255, g / 3 + 255 * self.lightAmount), math_min(255, b / 3 + 20 * self.lightAmount), not facingRight)
+ 		else
+-			video.renderSpriteState(cusprites.beamgun_light, x, y, 1, angle, 255, math_min(255, r / 3 + 255 * self.lightAmount), math_min(255, g / 3 + 150 * self.lightAmount), math_min(255, b / 3 + 20 * self.lightAmount), not facingRight)
++			video.renderSpriteState(cusprites.beamgun_light, x, y, 1, angle, 255, math_min(255, r / 3 + 255 * self.lightAmount),
++				math_min(255, g / 3 + 150 * self.lightAmount), math_min(255, b / 3 + 20 * self.lightAmount), not facingRight)
+ 		end
+ 		
+ 		for index, upgrade in pairs(self.upgrades) do
+@@ -8919,19 +8965,23 @@
+ 			local render_level = (self.ammo - 1) / 10 / level
+ 			
+ 			if level >= 4 then
+-				video.renderSpriteState(cusprites.beamgun_ball1, x, y, 1, angle, math_min(1, 4 * math_max(0, render_level - 0.75)) * 255, 255, 255, 255, not facingRight)
++				video.renderSpriteState(cusprites.beamgun_ball1, x, y, 1, angle,
++					math_min(1, 4 * math_max(0, render_level - 0.75)) * 255, 255, 255, 255, not facingRight)
+ 			end
+ 			
+ 			if level >= 3 then
+-				video.renderSpriteState(cusprites.beamgun_ball2, x, y, 1, angle, math_min(1, 4 * math_max(0, render_level - 0.5)) * 255, 255, 255, 255, not facingRight)
++				video.renderSpriteState(cusprites.beamgun_ball2, x, y, 1, angle,
++					math_min(1, 4 * math_max(0, render_level - 0.5)) * 255, 255, 255, 255, not facingRight)
+ 			end
+ 			
+ 			if level >= 2 then
+-				video.renderSpriteState(cusprites.beamgun_ball3, x, y, 1, angle, math_min(1, 4 * math_max(0, render_level - 0.25)) * 255, 255, 255, 255, not facingRight)
++				video.renderSpriteState(cusprites.beamgun_ball3, x, y, 1, angle,
++					math_min(1, 4 * math_max(0, render_level - 0.25)) * 255, 255, 255, 255, not facingRight)
+ 			end
+ 			
+ 			if level >= 1 then
+-				video.renderSpriteState(cusprites.beamgun_ball4, x, y, 1, angle, math_min(1, 4 * math_max(0, render_level)) * 255, 255, 255, 255, not facingRight)
++				video.renderSpriteState(cusprites.beamgun_ball4, x, y, 1, angle, math_min(1, 4 * math_max(0, render_level)) * 255,
++					255, 255, 255, not facingRight)
+ 			end
+ 		end
+ 	end,
+@@ -9306,7 +9356,8 @@
+ 			local arcing = angle - math_pi * 0.3 + math_pi * 0.6 / math_max(spikes - 1) * (i - 1)
+ 			local arcingSmall = angle - math_pi * 0.15 + math_pi * 0.3 / math_max(1, spikes - 1) * (i - 1)
+ 			
+-			actor:shootBullet(x + math_cos(angle) * -20 + math_cos(arcing) * 20, y + math_sin(angle) * -20 + math_sin(arcing) * 20, arcingSmall, bspeed, "spikeBullet", self)
++			actor:shootBullet(x + math_cos(angle) * -20 + math_cos(arcing) * 20,
++				y + math_sin(angle) * -20 + math_sin(arcing) * 20, arcingSmall, bspeed, "spikeBullet", self)
+ 		end
+ 		
+ 		actor.health = actor.health / 2
+@@ -9447,13 +9498,16 @@
+ 		
+ 		if self.useTimer then
+ 			if self.useTimer <= 0.2 and self:getAmmo() > 0 then
+-				video.renderSpriteState(cusprites.crossbow_bolt, x, y, 1, angle, 255 - self.useTimer * 255 * 5, r, g, b, not facingRight)
++				video.renderSpriteState(cusprites.crossbow_bolt, x, y, 1, angle, 255 - self.useTimer * 255 * 5, r, g, b,
++					not facingRight)
+ 			end
+ 			
+ 			if self.fired then
+ 				local ff = facingToFlipFactor(facingRight)
+ 				
+-				video.renderSpriteState(cusprites.crossbow_crank, x, y, 1, angle - math_pi * 0.5 * math_min(1, self.useTimer) * math_min(1, self.useTimer) * ff, 255, r, g, b, not facingRight)
++				video.renderSpriteState(cusprites.crossbow_crank, x, y, 1,
++					angle - math_pi * 0.5 * math_min(1, self.useTimer) * math_min(1, self.useTimer) * ff, 255, r, g, b,
++					not facingRight)
+ 			else
+ 				video.renderSpriteState(cusprites.crossbow_crank, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 			end
+@@ -9805,7 +9859,8 @@
+ 		if self.actor then
+ 			local col = self.actor:getIdentityColor() or COLORS.white
+ 			
+-			video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 175 + 50 * math_cos(_time * math_pi * 5), col.r, col.g, col.b, not facingRight)
++			video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 175 + 50 * math_cos(_time * math_pi * 5),
++				col.r, col.g, col.b, not facingRight)
+ 		end
+ 		
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+@@ -9813,7 +9868,8 @@
+ 		if self.actor then
+ 			local col = self.actor:getIdentityColor() or COLORS.white
+ 			
+-			video.renderSpriteState(self.def.customSprites.glow, x, y, 1 + 0.45 * math_cos(_time * math_pi * 5), angle, 255, col.r, col.g, col.b, not facingRight)
++			video.renderSpriteState(self.def.customSprites.glow, x, y, 1 + 0.45 * math_cos(_time * math_pi * 5), angle, 255,
++				col.r, col.g, col.b, not facingRight)
+ 		end
+ 	end,
+ 	updateMethod = function(self, actor, time)
+@@ -10023,7 +10079,8 @@
+ 		}
+ 	},
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	canUseMethod = METH.genericHasAmmo,
+ 	useFailMethod = METH.genericFailUse,
+@@ -10032,7 +10089,7 @@
+ 		
+ 		local rec = self:getRecoilAmount()
+ 		
+-		actor:setStealthPenalty(self:getSoundRange() * soundToVisFactor + rec * recoilToVisFactor)
++		actor:setStealthPenalty(self:getSoundRange() * SoundToVisFactor + rec * RecoilToVisFactor)
+ 		
+ 		local x, y = actor:getSafeWeaponXY()
+ 		local obj = actor:shootProjectedBullet(x, y, angle, self.bulletSpeed, self.bullet, self)
+@@ -11519,7 +11576,8 @@
+ 		back = "railBurst_back"
+ 	},
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	rackAngle = -math_pi * 0.5,
+ 	ai = {
+@@ -11850,7 +11908,8 @@
+ 		back = "railBurstBig_back"
+ 	},
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	rackAngle = -math_pi * 0.5,
+ 	ai = {
+@@ -12165,7 +12224,10 @@
+ 		video.renderSpriteState(cusprites.bottom, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+ 		for i = 1, 5 do
+-			video.renderSpriteState(cusprites.barrel, x + math_cos(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2, y + math_sin(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2, 1, angle, 255, r, g, b, not facingRight)
++			video.renderSpriteState(cusprites.barrel,
++				x + math_cos(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2,
++				y + math_sin(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2, 1, angle, 255, r,
++				g, b, not facingRight)
+ 		end
+ 		
+ 		video.renderSpriteState(cusprites.top, x, y, 1, angle, 255, r, g, b, not facingRight)
+@@ -12474,7 +12536,10 @@
+ 		local ff = facingToFlipFactor(facingRight)
+ 		
+ 		for i = 1, 8 do
+-			video.renderSpriteState(cusprites.barrel, x + math_cos(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 3, y + math_sin(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 3, 1, angle, 255, r, g, b, not facingRight)
++			video.renderSpriteState(cusprites.barrel,
++				x + math_cos(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 3,
++				y + math_sin(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 3, 1, angle, 255, r,
++				g, b, not facingRight)
+ 		end
+ 		
+ 		video.renderSpriteState(cusprites.top, x, y, 1, angle, 255, r, g, b, not facingRight)
+@@ -12837,7 +12902,10 @@
+ 		local ff = facingToFlipFactor(facingRight)
+ 		
+ 		for i = 1, 4 do
+-			video.renderSpriteState(cusprites.barrel, x + math_cos(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2, y + math_sin(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2, 1, angle, 255, r, g, b, not facingRight)
++			video.renderSpriteState(cusprites.barrel,
++				x + math_cos(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2,
++				y + math_sin(angle + math_pi * 0.5 * ff) * math_cos(self.spin * ff + 5 / i * math_pi * 2) * 2, 1, angle, 255, r,
++				g, b, not facingRight)
+ 		end
+ 		
+ 		video.renderSpriteState(cusprites.top, x, y, 1, angle, 255, r, g, b, not facingRight)
+@@ -12868,7 +12936,8 @@
+ 		top = "railVanquisher_top"
+ 	},
+ 	getMaxAmmo = function(self)
+-		return self.def.maxAmmo + (self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
++		return self.def.maxAmmo +
++		(self.upgrades.magazine and self.upgrades.magazine.level * self.upgrades.magazine.def.ammoCapacity or 0)
+ 	end,
+ 	rackAngle = -math_pi * 0.5,
+ 	ai = {
+@@ -15068,7 +15137,8 @@
+ 			local nodeAngle = actor:getRelativeWeaponAngle()
+ 			local x, y = actor:getSafeWeaponXY(0)
+ 			local def = actor:getNodeAttack("peck")
+-			local target = actor:performNodeAttack("peck", angle, nodeAngle, 0.33 + 0.67 * charge, charge, def.attack or self:getAttack(), self, x, y)
++			local target = actor:performNodeAttack("peck", angle, nodeAngle, 0.33 + 0.67 * charge, charge,
++				def.attack or self:getAttack(), self, x, y)
+ 			
+ 			self.charge = 0
+ 		end
+@@ -15138,7 +15208,10 @@
+ 	useMethod = function(self, actor, angle)
+ 		local x, y = actor:getSafeWeaponXY()
+ 		local range = 60
+-		local result, hitx, hity, nx, ny, userData, id = actor.map.physics:raycastPoints(x * actor.map.resolution, y * actor.map.resolution, (x + math_cos(angle) * range) * actor.map.resolution, (y + math_sin(angle) * range) * actor.map.resolution, false, _collisionCategory.objectSensor, _collisionFilter.solidActives, actor.bodyFilter)
++		local result, hitx, hity, nx, ny, userData, id = actor.map.physics:raycastPoints(x * actor.map.resolution,
++			y * actor.map.resolution, (x + math_cos(angle) * range) * actor.map.resolution,
++			(y + math_sin(angle) * range) * actor.map.resolution, false, _collisionCategory.objectSensor,
++			_collisionFilter.solidActives, actor.bodyFilter)
+ 		
+ 		if result then
+ 			local rayInfo = {
+@@ -15203,7 +15276,8 @@
+ 		object.time = object.time + time
+ 		
+ 		if self.hitActive then
+-			object:setAngle(math_approachAngle(object.angle, math_angleBetweenPoints(0, 0, object.dx, object.dy), time * math_pi * 2))
++			object:setAngle(math_approachAngle(object.angle, math_angleBetweenPoints(0, 0, object.dx, object.dy),
++				time * math_pi * 2))
+ 		end
+ 	end,
+ 	onThrowMethod = function(self, actor, object)
+@@ -16123,8 +16197,10 @@
+ 			local lightStar = 250 * pulse
+ 			local light = 250 * pulse
+ 			
+-			video.renderSpriteState(cusprites.klonkStar, x, y, 1, angle, 255, math_min(255, r / 3 + lightStar), math_min(255, r / 3 + lightStar), math_min(255, b / 3 + lightStar), not facingRight)
+-			video.renderSpriteState(cusprites.klonkLight, x, y, 1, angle, 255, math_min(255, r / 3 + light), math_min(255, g / 3 + light), math_min(255, b / 3 + light), not facingRight)
++			video.renderSpriteState(cusprites.klonkStar, x, y, 1, angle, 255, math_min(255, r / 3 + lightStar),
++				math_min(255, r / 3 + lightStar), math_min(255, b / 3 + lightStar), not facingRight)
++			video.renderSpriteState(cusprites.klonkLight, x, y, 1, angle, 255, math_min(255, r / 3 + light),
++				math_min(255, g / 3 + light), math_min(255, b / 3 + light), not facingRight)
+ 		else
+ 			video.renderSpriteState(cusprites.klonkStar, x, y, 1, angle, 255, r / 3, g / 3, b / 3, not facingRight)
+ 			video.renderSpriteState(cusprites.klonkLight, x, y, 1, angle, 255, r / 3, g / 3, b / 3, not facingRight)
+@@ -16225,8 +16301,12 @@
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+ 		if self.armed then
+-			video.renderSpriteState(self.def.customSprites.doomBomb_glow1, x, y, 1, angle, math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_cos(_time / self.explodeTimer) * 255) * 3), 255, 255, 255, not facingRight)
+-			video.renderSpriteState(self.def.customSprites.doomBomb_glow2, x, y, 1, angle, math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_sin(_time / self.explodeTimer) * 255) * 3), 255, 255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.doomBomb_glow1, x, y, 1, angle,
++				math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_cos(_time / self.explodeTimer) * 255) * 3), 255,
++				255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.doomBomb_glow2, x, y, 1, angle,
++				math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_sin(_time / self.explodeTimer) * 255) * 3), 255,
++				255, 255, not facingRight)
+ 		end
+ 	end,
+ 	customSpriteNames = {
+@@ -16602,7 +16682,8 @@
+ 		if self.armed then
+ 			local blink = self.blinkTimer / (self.explodeTimer / 2)
+ 			
+-			video.renderSpriteState(def.customSprites.light, x, y, 1, angle, math_min(255, blink * 255), 255, 255, 255, not facingRight)
++			video.renderSpriteState(def.customSprites.light, x, y, 1, angle, math_min(255, blink * 255), 255, 255, 255,
++				not facingRight)
+ 		end
+ 	end,
+ 	customSpriteNames = {
+@@ -16735,12 +16816,14 @@
+ 		local cu_sprites = self.def.customSprites
+ 		
+ 		if self.armed then
+-			video.renderSpriteState(cu_sprites.flashbang_glow, x, y, 1, angle, math_min(255, 255 * math_abs(math_cos(self.topTimer * math_pi / 7))), 255, 255, 255, flipped)
++			video.renderSpriteState(cu_sprites.flashbang_glow, x, y, 1, angle,
++				math_min(255, 255 * math_abs(math_cos(self.topTimer * math_pi / 7))), 255, 255, 255, flipped)
+ 		end
+ 		
+ 		local flashbang_name = flashbang_top_names[math_floor(self.topTimer) % 7 + 1]
+ 		
+-		video.renderSpriteState(cu_sprites[flashbang_name], x + math_cos(angle - math_pi * 0.5) * 9, y + math_sin(angle - math_pi * 0.5) * 9, 1, angle, 255, r, g, b, flipped)
++		video.renderSpriteState(cu_sprites[flashbang_name], x + math_cos(angle - math_pi * 0.5) * 9,
++			y + math_sin(angle - math_pi * 0.5) * 9, 1, angle, 255, r, g, b, flipped)
+ 	end,
+ 	customSpriteNames = {
+ 		"flashbang_glow",
+@@ -16922,7 +17005,7 @@
+ 				if not object.husk and master then
+ 					local hacks = 0
+ 					local range = def.range
+-					local range2 = range^2
++					local range2 = range ^ 2
+ 					local hack = false
+ 					local enemies = object.map.actors.enemiesOfTeam[master.team]
+ 					
+@@ -17647,8 +17730,12 @@
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+ 		if self.armed then
+-			video.renderSpriteState(self.def.customSprites.dynamiteGlow1, x, y, 1, angle, math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_cos(_time / self.explodeTimer) * 255) * 3), 255, 255, 255, not facingRight)
+-			video.renderSpriteState(self.def.customSprites.dynamiteGlow2, x, y, 1, angle, math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_sin(_time / self.explodeTimer) * 255) * 3), 255, 255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.dynamiteGlow1, x, y, 1, angle,
++				math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_cos(_time / self.explodeTimer) * 255) * 3), 255,
++				255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.dynamiteGlow2, x, y, 1, angle,
++				math_min(255, math_abs(math_cos(_time / self.explodeTimer) * math_sin(_time / self.explodeTimer) * 255) * 3), 255,
++				255, 255, not facingRight)
+ 		end
+ 	end,
+ 	customSpriteNames = {
+@@ -17774,7 +17861,8 @@
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+ 		if self.armed then
+-			video.renderSpriteState(self.def.customSprites.stickyMineRed, x, y, 1, angle, 255 * math_max(0, math_sign(math_cos(_time * 12 * math_pi))), 255, 255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.stickyMineRed, x, y, 1, angle,
++				255 * math_max(0, math_sign(math_cos(_time * 12 * math_pi))), 255, 255, 255, not facingRight)
+ 		end
+ 	end,
+ 	customSpriteNames = {
+@@ -17979,7 +18067,8 @@
+ 		local good = 255 * math_max(0, 1 - self.dieOff * 16)
+ 		local cusprites = self.def.customSprites
+ 		
+-		video.renderSpriteState(cusprites.rock_light, x, y, 1, angle, 255, glow * good, glow * good, glow * bad, not facingRight)
++		video.renderSpriteState(cusprites.rock_light, x, y, 1, angle, 255, glow * good, glow * good, glow * bad,
++			not facingRight)
+ 		video.renderSpriteState(cusprites.rock_glow, x, y, 1, angle, glow * bad, good, good, 255, not facingRight)
+ 	end,
+ 	customSpriteNames = {
+@@ -18132,8 +18221,10 @@
+ 	local flipped = not facingRight
+ 	local xo, yo = math_cos(angle - math_pi * 0.5), math_sin(angle - math_pi * 0.5)
+ 	
+-	video.renderSpriteState(cusprites.stick1, x + xo * (ext * 14 - 12), y + yo * (ext * 14 - 12), 1, angle, 255, r, g, b, flipped)
+-	video.renderSpriteState(cusprites.stick2, x + xo * (ext * 24 - 12), y + yo * (ext * 24 - 12), 1, angle, 255, r, g, b, flipped)
++	video.renderSpriteState(cusprites.stick1, x + xo * (ext * 14 - 12), y + yo * (ext * 14 - 12), 1, angle, 255, r, g, b,
++		flipped)
++	video.renderSpriteState(cusprites.stick2, x + xo * (ext * 24 - 12), y + yo * (ext * 24 - 12), 1, angle, 255, r, g, b,
++		flipped)
+ 	video.renderSpriteState(def.sprite, x, y, 1, angle, 255, r, g, b, flipped)
+ 	
+ 	local tx, ty = x + xo * (ext * 22 + 7), y + yo * (ext * 22 + 7)
+@@ -18772,7 +18863,8 @@
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+ 		if self.glowTimer then
+-			video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle, math_min(255 * self.glowTimer, 255), 255, 255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle, math_min(255 * self.glowTimer, 255), 255, 255,
++				255, not facingRight)
+ 		end
+ 	end,
+ 	customSpriteNames = {
+@@ -18959,7 +19051,8 @@
+ 				end
+ 				
+ 				object:emitSound("eggHatch", 1, 1, 450)
+-				helpers.fxGenerator("eggShells", object.map, object.x, object.y, 1, 1, impact.angle, impact.impulse, nil, object:getOwner())
++				helpers.fxGenerator("eggShells", object.map, object.x, object.y, 1, 1, impact.angle, impact.impulse, nil,
++					object:getOwner())
+ 				object:remove()
+ 			end
+ 		end
+@@ -19147,7 +19240,8 @@
+ 		video.renderSpriteState(cusprites.vial_glow, x, y, 1, angle, 255 * glow, 255, 255, 255, not facingRight)
+ 		
+ 		if self.armed then
+-			video.renderSpriteState(cusprites.vial_glow, x, y, 1.2, angle, (128 + math_cos(_time * 15) * 127) * glow, 255, 255, 255, not facingRight)
++			video.renderSpriteState(cusprites.vial_glow, x, y, 1.2, angle, (128 + math_cos(_time * 15) * 127) * glow, 255, 255,
++				255, not facingRight)
+ 		end
+ 	end,
+ 	customSpriteNames = {
+@@ -19258,7 +19352,8 @@
+ 		video.renderSpriteState(cusprites.vialRad_glow, x, y, 1, angle, 255 * glow, 255, 255, 255, not facingRight)
+ 		
+ 		if self.armed then
+-			video.renderSpriteState(cusprites.vialRad_glow, x, y, 1.2, angle, (128 + math_cos(_time * 15) * 127) * glow, 255, 255, 255, not facingRight)
++			video.renderSpriteState(cusprites.vialRad_glow, x, y, 1.2, angle, (128 + math_cos(_time * 15) * 127) * glow, 255,
++				255, 255, not facingRight)
+ 		end
+ 	end,
+ 	customSpriteNames = {
+@@ -19814,7 +19909,9 @@
+ 	color = COLORS.stunShield,
+ 	effect_color = COLORS.shieldEffect,
+ 	getEffectRange = function(self)
+-		return 150 + (self.upgrades.effect and self.upgrades.effect.level or 0) * math_max(25, 50 - (self.upgrades.range and self.upgrades.range.level or 0) * 5)
++		return 150 +
++		(self.upgrades.effect and self.upgrades.effect.level or 0) *
++		math_max(25, 50 - (self.upgrades.range and self.upgrades.range.level or 0) * 5)
+ 	end,
+ 	getEffectIntensity = function(self)
+ 		return 1 + (self.upgrades.effect and self.upgrades.effect.level or 0)
+@@ -20723,10 +20820,14 @@
+ 		local glowing = 0.6 + math_cos(_time * math_pi * 2 / 0.85) * 0.33
+ 		local cusprites = self.def.customSprites
+ 		
+-		video.renderSpriteState(cusprites.respawnCellLight, x, y, 1, angle, 255, math_min(255, r / 3 + 255 * intensity), math_min(255, g / 3 + 255 * intensity), math_min(255, b / 3 + 255 * intensity), not facingRight)
+-		video.renderSpriteState(cusprites.respawnCellDiod, x, y, 1, angle, 255, math_min(255, r / 3 + 255 * glowing), math_min(255, g / 3 + 255 * glowing), math_min(255, b / 3 + 255 * glowing), not facingRight)
+-		video.renderSpriteState(cusprites.respawnCellGlow, x, y, 1, angle, math_min(255 * intensity, 255), 255, 255, 255, not facingRight)
+-		video.renderSpriteState(cusprites.respawnCellDiodGlow, x, y, 1, angle, math_min(255 * glowing, 255), 255, 255, 255, not facingRight)
++		video.renderSpriteState(cusprites.respawnCellLight, x, y, 1, angle, 255, math_min(255, r / 3 + 255 * intensity),
++			math_min(255, g / 3 + 255 * intensity), math_min(255, b / 3 + 255 * intensity), not facingRight)
++		video.renderSpriteState(cusprites.respawnCellDiod, x, y, 1, angle, 255, math_min(255, r / 3 + 255 * glowing),
++			math_min(255, g / 3 + 255 * glowing), math_min(255, b / 3 + 255 * glowing), not facingRight)
++		video.renderSpriteState(cusprites.respawnCellGlow, x, y, 1, angle, math_min(255 * intensity, 255), 255, 255, 255,
++			not facingRight)
++		video.renderSpriteState(cusprites.respawnCellDiodGlow, x, y, 1, angle, math_min(255 * glowing, 255), 255, 255, 255,
++			not facingRight)
+ 	end,
+ 	asObjectUpdate = function(self, object, time)
+ 		if object:isInView(500) then
+@@ -20801,20 +20902,25 @@
+ 	local li = 25 + 200 * self.blink
+ 	local alp = 200 - 100 * self.fade
+ 	
+-	video.renderSpriteState(self.def.customSprites.bg, x, y, scale, 0, alp, li * ti.r, li * ti.g, li * ti.b, not facingRight)
++	video.renderSpriteState(self.def.customSprites.bg, x, y, scale, 0, alp, li * ti.r, li * ti.g, li * ti.b,
++		not facingRight)
+ 	
+ 	if self.item then
+-		local rx, ry = x + math_cos(self.seed + _time * 0.6 * math_pi) * 1, y + math_sin(self.seed + _time * 0.9511 * math_pi + math_cos(self.seed + _time * 0.2 * math_pi)) * 2
++		local rx, ry = x + math_cos(self.seed + _time * 0.6 * math_pi) * 1,
++				y + math_sin(self.seed + _time * 0.9511 * math_pi + math_cos(self.seed + _time * 0.2 * math_pi)) * 2
+ 		
+ 		self.item:renderAligned(rx, ry, 1, 1, 0, 255 * self.fade, 255 * self.fade, 255 * self.fade, facingRight)
+ 		
+ 		local st = self.item:getStack()
+ 		
+ 		if st > 1 then
+-			video.renderShadowedTextSprites(st, rx, ry - 20 + fonts.alignY("small"), 1, "small", self.fade * 200, ti.r * 255, ti.g * 255, ti.b * 255)
++			video.renderShadowedTextSprites(st, rx, ry - 20 + fonts.alignY("small"), 1, "small", self.fade * 200, ti.r * 255,
++				ti.g * 255, ti.b * 255)
+ 		end
+ 	elseif self.cooldown > 0 then
+-		video.renderSpriteState(self.def.customSprites.fg, x, y, scale * (self.startCooldown - self.cooldown) / self.startCooldown, 0, 30, 255 * ti.r, 255 * ti.g, 255 * ti.b, not facingRight)
++		video.renderSpriteState(self.def.customSprites.fg, x, y,
++			scale * (self.startCooldown - self.cooldown) / self.startCooldown, 0, 30, 255 * ti.r, 255 * ti.g, 255 * ti.b,
++			not facingRight)
+ 	end
+ end
+ 
+@@ -20822,11 +20928,13 @@
+ 	if self.cooldown <= 0 then
+ 		local ti = self.def.tint
+ 		local scale = (0.9 + math_cos(_time * math_pi * 2) * 0.1) * self.fade * self.def.scale
+-		local rx, ry = x + math_cos(self.seed + _time * 0.6 * math_pi) * 1, y + math_sin(self.seed + _time * 0.9511 * math_pi + math_cos(self.seed + _time * 0.2 * math_pi)) * 2
++		local rx, ry = x + math_cos(self.seed + _time * 0.6 * math_pi) * 1,
++				y + math_sin(self.seed + _time * 0.9511 * math_pi + math_cos(self.seed + _time * 0.2 * math_pi)) * 2
+ 		local op = 1 - self.blink
+ 		local rr, gg, bb = ti.r * 255, ti.g * 255, ti.b * 255
+ 		
+-		video.renderSpriteState(self.def.customSprites.main, rx, ry, 1 * scale * 1.4, 0, op * 255 * self.fade, rr * 0.65, gg * 0.65, bb * 0.65)
++		video.renderSpriteState(self.def.customSprites.main, rx, ry, 1 * scale * 1.4, 0, op * 255 * self.fade, rr * 0.65,
++			gg * 0.65, bb * 0.65)
+ 		video.renderSpriteState(self.def.customSprites.icon, rx, ry, 1 * scale, 0, op * 255 * self.fade, rr, gg, bb)
+ 	end
+ end
+@@ -21081,7 +21189,9 @@
+ 	local fade = self.fade
+ 	local blink = self.blink
+ 	
+-	video.renderSpriteState(FX.itemShine.sprite, x, y, fade * 1 * math_max(0, 1 + 0.15 * math_cos(_time + self.seed)) + 0.1 * blink, 0, 50 + 40 * blink, 255 * ti.r, 255 * ti.g, 255 * ti.b)
++	video.renderSpriteState(FX.itemShine.sprite, x, y,
++		fade * 1 * math_max(0, 1 + 0.15 * math_cos(_time + self.seed)) + 0.1 * blink, 0, 50 + 40 * blink, 255 * ti.r,
++		255 * ti.g, 255 * ti.b)
+ 	
+ 	local scale = (0.9 + math_cos(_time * math_pi * 2) * 0.1) * fade * def.scale
+ 	
+@@ -21645,10 +21755,12 @@
+ 		if self.target then
+ 			local cusprites = self.def.customSprites
+ 			
+-			video.renderSpriteState(cusprites.led, x, y, 1, angle, 175 + 50 * math_cos(_time * math_pi * 5), hackColor.r, hackColor.g, hackColor.b, not facingRight)
++			video.renderSpriteState(cusprites.led, x, y, 1, angle, 175 + 50 * math_cos(_time * math_pi * 5), hackColor.r,
++				hackColor.g, hackColor.b, not facingRight)
+ 			
+ 			if self.active then
+-				video.renderSpriteState(cusprites.glow, x, y, 1, angle, 90 * (1 + 0.45 * math_cos(_time * math_pi * 5)), hackColor.r, hackColor.g, hackColor.b, not facingRight)
++				video.renderSpriteState(cusprites.glow, x, y, 1, angle, 90 * (1 + 0.45 * math_cos(_time * math_pi * 5)),
++					hackColor.r, hackColor.g, hackColor.b, not facingRight)
+ 			end
+ 		end
+ 	end,
+@@ -21898,15 +22010,18 @@
+ 					local distance = math_distance(wx, wy, self.target.x, self.target.y)
+ 					
+ 					for index, big in pairs(self.bigBolts) do
+-						big:setEnd(wx + math_cos(angleTo) * distance * visualProgress, wy + math_sin(angleTo) * distance * visualProgress)
++						big:setEnd(wx + math_cos(angleTo) * distance * visualProgress,
++							wy + math_sin(angleTo) * distance * visualProgress)
+ 						
+ 						big.rescanDelay = 0
+ 					end
+ 					
+-					self.hackObject:setPosition(wx + math_cos(angleTo) * distance * visualProgress, wy + math_sin(angleTo) * distance * visualProgress)
++					self.hackObject:setPosition(wx + math_cos(angleTo) * distance * visualProgress,
++						wy + math_sin(angleTo) * distance * visualProgress)
+ 					
+ 					if math_random() < time * 40 then
+-						local fx = actor:emitPpFxAt("hackSpark", wx + math_cos(angleTo) * distance * visualProgress, wy + math_sin(angleTo) * distance * visualProgress)
++						local fx = actor:emitPpFxAt("hackSpark", wx + math_cos(angleTo) * distance * visualProgress,
++							wy + math_sin(angleTo) * distance * visualProgress)
+ 						
+ 						fx:setTime(-math_random() * 0.07)
+ 						fx:setSpeed(math_random() * 2 * math_pi, math_random() * 400 + 200)
+@@ -21952,7 +22067,10 @@
+ 	useMethod = function(self, actor, angle)
+ 		if self.currentGrab == nil then
+ 			local x, y = actor:getSafeWeaponXY()
+-			local result, hitx, hity, nx, ny, userData, id = actor.map.physics:raycastPoints(x * actor.map.resolution, y * actor.map.resolution, (x + math_cos(angle) * 40) * actor.map.resolution, (y + math_sin(angle) * 40) * actor.map.resolution, false, _collisionCategory.objectSensor, _collisionFilter.notIdleObjects, actor.bodyFilter)
++			local result, hitx, hity, nx, ny, userData, id = actor.map.physics:raycastPoints(x * actor.map.resolution,
++				y * actor.map.resolution, (x + math_cos(angle) * 40) * actor.map.resolution,
++				(y + math_sin(angle) * 40) * actor.map.resolution, false, _collisionCategory.objectSensor,
++				_collisionFilter.notIdleObjects, actor.bodyFilter)
+ 			
+ 			if result then
+ 				local target = actor.map.bodyLookup[id]
+@@ -21965,7 +22083,8 @@
+ 						
+ 						local tx, ty = t:getVisualPosition()
+ 						
+-						self.meAngle = -math_angleDifference(actor.angle - math_pi * 0.5, math_angleDifference(actor:getAbsoluteWeaponAngle(), math_angleBetweenPoints(x, y, tx, ty)))
++						self.meAngle = -math_angleDifference(actor.angle - math_pi * 0.5,
++							math_angleDifference(actor:getAbsoluteWeaponAngle(), math_angleBetweenPoints(x, y, tx, ty)))
+ 						self.meDist = math_max(0, math_distance(x, y, tx, ty) - 20)
+ 						self.angleDiff = math_angleDifference(actor.aimAngle, t.angle)
+ 						self.sameFacing = t.facingRight == actor.facingRight
+@@ -22024,7 +22143,8 @@
+ 					if math_length(self.lastGrabDx, self.lastGrabDy) > 120 or maxDist < math_distance(x, y, tx, ty) then
+ 						self.def.switchedFromMethod(self, actor)
+ 					else
+-						self.currentGrab:setSpeedXY(math_max(-maxForce, math_min(maxForce, self.lastGrabDx)), math_max(-maxForce, math_min(maxForce, self.lastGrabDy)))
++						self.currentGrab:setSpeedXY(math_max(-maxForce, math_min(maxForce, self.lastGrabDx)),
++							math_max(-maxForce, math_min(maxForce, self.lastGrabDy)))
+ 						
+ 						self.currentGrab.onGround = false
+ 						
+@@ -22253,11 +22373,13 @@
+ 		local rx, ry = math.getOffsetPosition(x, y, -2, -9, angle, 1, flipped)
+ 		local spin_angle = spin * (flipped and -1 or 1)
+ 		
+-		video.renderSpriteState(cusprites.disc, rx, ry, 1, angle + spin_angle, 255, col.r * iu, col.g * iu, col.b * iu, flipped)
++		video.renderSpriteState(cusprites.disc, rx, ry, 1, angle + spin_angle, 255, col.r * iu, col.g * iu, col.b * iu,
++			flipped)
+ 		video.renderSpriteState(cusprites.hook, x, y, 1, angle, 255, r, g, b, flipped)
+ 		
+ 		if active then
+-			video.renderSpriteState(cusprites.glow, rx, ry, 1, angle + spin_angle, glow * 64 * iu * (1 + 0.25 * math_sin(spin * 2 * math_pi)), col.r, col.g, col.b, flipped)
++			video.renderSpriteState(cusprites.glow, rx, ry, 1, angle + spin_angle,
++				glow * 64 * iu * (1 + 0.25 * math_sin(spin * 2 * math_pi)), col.r, col.g, col.b, flipped)
+ 		end
+ 		
+ 		video.renderSpriteState(def.sprite, x, y, 1, angle, 255, r, g, b, flipped)
+@@ -22392,7 +22514,8 @@
+ 						local ang = abs_weapon_angle + math_random() * math_pi * 0.25 - math_random() * math_pi * 0.25
+ 						local dist = math_random() * 75 + 75
+ 						
+-						fx:setEnd(actor.x + actor.rig.weapon.rx + math_cos(ang) * dist, actor.y + actor.rig.weapon.ry + math_sin(ang) * dist)
++						fx:setEnd(actor.x + actor.rig.weapon.rx + math_cos(ang) * dist,
++							actor.y + actor.rig.weapon.ry + math_sin(ang) * dist)
+ 					end
+ 				end
+ 				
+@@ -22461,7 +22584,8 @@
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+ 		if self.useTimer > 0 then
+-			video.renderSpriteState(self.def.customSprites.loadGlow, x, y, 1, angle, self.useTimer * 255 / self.def.cooldown * glow, 255, 255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.loadGlow, x, y, 1, angle,
++				self.useTimer * 255 / self.def.cooldown * glow, 255, 255, 255, not facingRight)
+ 		else
+ 			video.renderSpriteState(self.def.customSprites.tipGlow, x, y, 1, angle, 255 * glow, 255, 255, 255, not facingRight)
+ 		end
+@@ -24436,7 +24560,7 @@
+ 			obj:setAngle(angle)
+ 			obj:setOwner(actor)
+ 			actor:emitSound(self:getUseSound(), self:getUseSoundVolume(), self:getUseSoundMod(), self:getSoundRange())
+-			actor:setStealthPenalty(self:getSoundRange() * soundToVisFactor)
++			actor:setStealthPenalty(self:getSoundRange() * SoundToVisFactor)
+ 			
+ 			obj.hitForce = self:getAttackForce()
+ 			obj.griplessForce = self:getGriplessAmount()
+@@ -24465,7 +24589,8 @@
+ 		local cusprites = self.def.customSprites
+ 		
+ 		if self.useTimer > 0 then
+-			video.renderSpriteState(cusprites.phasergun_red, x, y, 1, angle, glow * self.useTimer * 255 / self.def.cooldown, 255, 255, 255, not facingRight)
++			video.renderSpriteState(cusprites.phasergun_red, x, y, 1, angle, glow * self.useTimer * 255 / self.def.cooldown,
++				255, 255, 255, not facingRight)
+ 		else
+ 			video.renderSpriteState(cusprites.phasergun_green, x, y, 1, angle, glow * 255, 255, 255, 255, not facingRight)
+ 		end
+@@ -24533,7 +24658,8 @@
+ 			local dist = math_random(20)
+ 			local wAng = actor:getWeaponAngle() - math_pi * 0.5
+ 			
+-			actor:emitFxAt("batonSparkLight", actor:getWeaponNodeX() + math_cos(wAng) * dist, actor:getWeaponNodeY() + math_sin(wAng) * dist)
++			actor:emitFxAt("batonSparkLight", actor:getWeaponNodeX() + math_cos(wAng) * dist,
++				actor:getWeaponNodeY() + math_sin(wAng) * dist)
+ 		end
+ 	end
+ end
+@@ -24571,7 +24697,8 @@
+ 				local dist = math_random(20)
+ 				local wAng = actor:getWeaponAngle() - math_pi * 0.5
+ 				
+-				actor:emitFxAt("batonSparkLight", actor:getWeaponNodeX() + math_cos(wAng) * dist, actor:getWeaponNodeY() + math_sin(wAng) * dist)
++				actor:emitFxAt("batonSparkLight", actor:getWeaponNodeX() + math_cos(wAng) * dist,
++					actor:getWeaponNodeY() + math_sin(wAng) * dist)
+ 			end
+ 		end
+ 	end,
+@@ -24584,14 +24711,16 @@
+ 	end,
+ 	lightMapRenderMethod = function(self, object, x, y)
+ 		if self.hitActive then
+-			video.renderSpriteState(self.def.customSprites.energybaton_glow, x, y, 1, object.angle, 128, 255, 255, 255, object.flipped)
++			video.renderSpriteState(self.def.customSprites.energybaton_glow, x, y, 1, object.angle, 128, 255, 255, 255,
++				object.flipped)
+ 			video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 0.5, object.angle, 50.400000000000006, 34.2, 4.4)
+ 		end
+ 	end,
+ 	renderMethod = function(self, x, y, angle, r, g, b, facingRight, glow)
+ 		if self.hitActive then
+ 			video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+-			video.renderSpriteState(self.def.customSprites.energybaton_glow, x, y, 1, angle, 255 * glow, 255, 255, 255, not facingRight)
++			video.renderSpriteState(self.def.customSprites.energybaton_glow, x, y, 1, angle, 255 * glow, 255, 255, 255,
++				not facingRight)
+ 		else
+ 			video.renderSpriteState(self.def.customSprites.energybaton_off, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		end
+@@ -24773,10 +24902,17 @@
+ 					object:setAutopickup(true)
+ 				end
+ 				
+-				local returnSpeed = math_abs(rotation) * 28 / (1 + math_sqrt(speed) * 7) * math_min(1, object.time * 2 - 0.2) * math_max(0, math_min(1, 3 - object.time))
++				local returnSpeed = math_abs(rotation) * 28 / (1 + math_sqrt(speed) * 7) * math_min(1, object.time * 2 - 0.2) *
++				math_max(0, math_min(1, 3 - object.time))
+ 				
+-				object:addSpeedXY(math_cos(object.startAngle + math_pi) * time * returnSpeed, math_sin(object.startAngle + math_pi) * time * returnSpeed)
+-				object.map.physics:setEntityAngleSpeed(object.body, math_approach(rotation, 0, time * 5 * math_max(math_min(2, object.time * 1.5), math_abs(math_angleDifference(moveAngle, object.startAngle)) / math_pi) + math_abs(rotation * rotation * rotation * 0.0008) * time))
++				object:addSpeedXY(math_cos(object.startAngle + math_pi) * time * returnSpeed,
++					math_sin(object.startAngle + math_pi) * time * returnSpeed)
++				object.map.physics:setEntityAngleSpeed(object.body,
++					math_approach(rotation, 0,
++						time * 5 *
++						math_max(math_min(2, object.time * 1.5),
++							math_abs(math_angleDifference(moveAngle, object.startAngle)) / math_pi) +
++						math_abs(rotation * rotation * rotation * 0.0008) * time))
+ 				
+ 				rotation = object.map.physics:getEntityAngleSpeed(object.body)
+ 				
+@@ -24790,7 +24926,9 @@
+ 			end
+ 			
+ 			self.blur = rotation * 1.5 * time
+-			object.dy = object.dy + (gravity - math_min(gravity, math_abs(math_cos(moveAngle)) * gravity / 200 * math_abs(rotation * rotation) * math_abs(math_cos(moveAngle)))) * time / math_abs(1 + math_abs(rotation) * 0.01)
++			object.dy = object.dy +
++			(gravity - math_min(gravity, math_abs(math_cos(moveAngle)) * gravity / 200 * math_abs(rotation * rotation) * math_abs(math_cos(moveAngle)))) *
++			time / math_abs(1 + math_abs(rotation) * 0.01)
+ 		end
+ 	end,
+ 	asObjectPhysics = {
+@@ -25205,11 +25343,16 @@
+ 					actor:emitSound("eggGrowth", 1, 1, 200)
+ 				end
+ 				
+-				actor.rig["egg" .. self.spawningEgg].scale = 1 - math_min(1, math_max(0, math_easeOut(self.spawnDelay) - 0.5) * 2)
++				actor.rig["egg" .. self.spawningEgg].scale = 1 -
++				math_min(1, math_max(0, math_easeOut(self.spawnDelay) - 0.5) * 2)
+ 			end
+ 			
+ 			if self.spawnDelay <= 0 and #self.ownedActors < self.upgrades.birdEgg.level then
+-				local bird = actor:spawnActorAt("bird", (actor:getAbsoluteNodeX("egg" .. self.spawningEgg) + actor:getAbsoluteNodeX("egg" .. self.spawningEgg .. "Bob")) / 2, (actor:getAbsoluteNodeY("egg" .. self.spawningEgg) + actor:getAbsoluteNodeY("egg" .. self.spawningEgg .. "Bob")) / 2)
++				local bird = actor:spawnActorAt("bird",
++					(actor:getAbsoluteNodeX("egg" .. self.spawningEgg) + actor:getAbsoluteNodeX("egg" .. self.spawningEgg .. "Bob")) /
++					2,
++					(actor:getAbsoluteNodeY("egg" .. self.spawningEgg) + actor:getAbsoluteNodeY("egg" .. self.spawningEgg .. "Bob")) /
++					2)
+ 				
+ 				bird:setTeam(actor.team)
+ 				bird:setAi(Ai:new(ACTORS[bird.type].defaultAi))
+@@ -25220,7 +25363,9 @@
+ 				actor.rig:setNodeVisible("egg" .. self.spawningEgg, false)
+ 				bird:emitSound("eggHatch", 1, 1, 450)
+ 				
+-				local angleTo = math_angleBetweenPoints(actor.rig["egg" .. self.spawningEgg].rx, actor.rig["egg" .. self.spawningEgg].ry, actor.rig["egg" .. self.spawningEgg .. "Bob"].rx, actor.rig["egg" .. self.spawningEgg .. "Bob"].ry)
++				local angleTo = math_angleBetweenPoints(actor.rig["egg" .. self.spawningEgg].rx,
++					actor.rig["egg" .. self.spawningEgg].ry, actor.rig["egg" .. self.spawningEgg .. "Bob"].rx,
++					actor.rig["egg" .. self.spawningEgg .. "Bob"].ry)
+ 				
+ 				helpers.fxGenerator("eggShells", actor.map, bird.x, bird.y, 1, 1, angleTo, 1, nil, actor)
+ 				table.insert(self.ownedActors, bird)
+@@ -26315,11 +26460,13 @@
+ 	renderMethod = function(self, x, y, angle, r, g, b, facingRight, glow)
+ 		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r, g, b, not facingRight)
+ 		
+-		local glow = 0.8 + 0.2 * math_sin(self.countId / math_pi / 2 + _time * 3) * math_cos(self.countId / math_pi / 2 + _time * 5)
++		local glow = 0.8 +
++		0.2 * math_sin(self.countId / math_pi / 2 + _time * 3) * math_cos(self.countId / math_pi / 2 + _time * 5)
+ 		local cusprites = self.def.customSprites
+ 		
+ 		video.renderSpriteState(cusprites.powerplug_light, x, y, 1, angle, 255 * glow, 255, 255, 255, not facingRight)
+-		video.renderSpriteState(cusprites.powerplug_glow, x, y, 0.5 + 0.5 * glow, angle, 255 * glow, 255, 255, 255, not facingRight)
++		video.renderSpriteState(cusprites.powerplug_glow, x, y, 0.5 + 0.5 * glow, angle, 255 * glow, 255, 255, 255,
++			not facingRight)
+ 	end
+ }
+ ITEMS.energy = {
+@@ -26734,8 +26881,10 @@
+ 		local l = self.tint or TINTS.green
+ 		local blink = math_heartPulse(_time / 0.85)
+ 		
+-		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r * 0.5 + 0.5 * r * t.r, g * 0.5 + 0.5 * g * t.g, b * 0.5 + 0.5 * b * t.b, not facingRight)
+-		video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, math_min(255 * blink, 255), 255 * l.r, 255 * l.g, 255 * l.b, not facingRight)
++		video.renderSpriteState(self.def.sprite, x, y, 1, angle, 255, r * 0.5 + 0.5 * r * t.r, g * 0.5 + 0.5 * g * t.g,
++			b * 0.5 + 0.5 * b * t.b, not facingRight)
++		video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, math_min(255 * blink, 255), 255 * l.r,
++			255 * l.g, 255 * l.b, not facingRight)
+ 	end,
+ 	onActorSet = function(self, a)
+ 		self.tint = a and a:getIdentityTint() or TINTS.white
+@@ -27197,9 +27346,11 @@
+ 		local glow1 = math_cos(self.glowTimer * math_pi * 4) * 0.25 + 0.75
+ 		local col = COLORS.data
+ 		
+-		video.renderSpriteState(cusprites.light, x, y, 1, angle, 255, col.r * glow1, col.g * glow1, col.b * glow1, not facingRight)
++		video.renderSpriteState(cusprites.light, x, y, 1, angle, 255, col.r * glow1, col.g * glow1, col.b * glow1,
++			not facingRight)
+ 		video.renderSpriteState(cusprites.glow, x, y, 1, angle, glow1 * 255, col.r, col.g, col.b, not facingRight)
+-		video.renderSpriteState(cusprites.topLight, x, y, 1, angle, 255, col.r * glow1, col.g * glow1, col.b * glow1, not facingRight)
++		video.renderSpriteState(cusprites.topLight, x, y, 1, angle, 255, col.r * glow1, col.g * glow1, col.b * glow1,
++			not facingRight)
+ 		video.renderSpriteState(cusprites.topGlow, x, y, 1, angle, glow1 * 255, col.r, col.g, col.b, not facingRight)
+ 		
+ 		if self.data then
+@@ -27207,7 +27358,8 @@
+ 			local icon = self.data:getIconSprite()
+ 			local dist = 21 + glow2 * 3
+ 			
+-			video.renderSpriteState(icon, x + math_cos(angle - math_pi * 0.5) * dist, y + math_sin(angle - math_pi * 0.5) * dist, 0.15 + glow2 * 0.06, angle, glow2 * 200, col.r, col.g, col.b)
++			video.renderSpriteState(icon, x + math_cos(angle - math_pi * 0.5) * dist,
++				y + math_sin(angle - math_pi * 0.5) * dist, 0.15 + glow2 * 0.06, angle, glow2 * 200, col.r, col.g, col.b)
+ 		end
+ 	end,
+ 	behaviours = {
+@@ -27361,7 +27513,8 @@
+ 							for i = 1, 2 + math_random(1, 3) * detail * 2 do
+ 								local obj = ent:emitSparkAt("repairSpark", x, y)
+ 								
+-								obj:setSpeed(-math_pi * 0.5 + math_random() * math_pi * 0.25 - math_random() * math_pi * 0.25, math_random() * 7.5 + 7)
++								obj:setSpeed(-math_pi * 0.5 + math_random() * math_pi * 0.25 - math_random() * math_pi * 0.25,
++									math_random() * 7.5 + 7)
+ 							end
+ 							
+ 							local ammoprg = self:getAmmo() / self:getMaxAmmo()
+@@ -27384,7 +27537,8 @@
+ 			if self.expandedTimer >= 1 then
+ 				if self.angleDelay <= 0 and self.joltAnim > 0 then
+ 					if self.angleTimer < 1 then
+-						local ang = math_approachAngle(self.angleStart, self.angleTarget, math.abs(self.angleTarget - self.angleStart) * self.angleTimer)
++						local ang = math_approachAngle(self.angleStart, self.angleTarget,
++							math.abs(self.angleTarget - self.angleStart) * self.angleTimer)
+ 						
+ 						self.angleTimer = self.angleTimer + time * 6
+ 						
+@@ -27392,7 +27546,8 @@
+ 						
+ 						if index > 4 then
+ 							self.angleOffset = ang
+-							self.angleLegOffset = math_approachAngle(self.angleLegOffset, math.angleDifference(self.angleStart, ang), math_pi * 4 * time)
++							self.angleLegOffset = math_approachAngle(self.angleLegOffset, math.angleDifference(self.angleStart, ang),
++								math_pi * 4 * time)
+ 						else
+ 							self.expandedAngles[index] = ang
+ 						end
+@@ -27529,7 +27684,8 @@
+ 				hand_angle = hand_angle - exp * exp_angle * 0.5
+ 			end
+ 			
+-			local rx, ry = math.getOffsetPosition(x + hull_dx * hull_factor, y + hull_dy * hull_factor, ox, oy, angle, 1, total_flip)
++			local rx, ry = math.getOffsetPosition(x + hull_dx * hull_factor, y + hull_dy * hull_factor, ox, oy, angle, 1,
++				total_flip)
+ 			
+ 			video.renderSpriteState(cusprites.leg, rx, ry, 1, arm_angle, 255, r, g, b, arm_flip)
+ 			
+@@ -27542,16 +27698,20 @@
+ 		
+ 		local jolt = self.joltAnim
+ 		local drill_angle = self.spinTimer * math_pi * 2
+-		local tele_expand = 15 * jolt - self.adjustAnim * math.abs(self.angleTarget) * 4 + 3 * exp - math_max(0, math_cos(self.joltTimer * math.pi * 2)) * 8 * jolt
++		local tele_expand = 15 * jolt - self.adjustAnim * math.abs(self.angleTarget) * 4 + 3 * exp -
++		math_max(0, math_cos(self.joltTimer * math.pi * 2)) * 8 * jolt
+ 		local tele_dx, tele_dy = math_cos(up_angle) * exp * tele_expand, math_sin(up_angle) * exp * tele_expand
+ 		local drill_off = 10 + 3 * exp
+-		local drill_dx, drill_dy = math_cos(up_angle) * (drill_off + exp * tele_expand), math_sin(up_angle) * (drill_off + exp * tele_expand)
++		local drill_dx, drill_dy = math_cos(up_angle) * (drill_off + exp * tele_expand),
++				math_sin(up_angle) * (drill_off + exp * tele_expand)
+ 		
+ 		video.renderSpriteState(cusprites.drill, x + drill_dx, y + drill_dy, 1, drill_angle, 255, r, g, b, total_flip)
+ 		
+ 		if jolt > 0 then
+-			video.renderSpriteState(cusprites.drillGlow, x + drill_dx, y + drill_dy, 1, drill_angle, jolt * 255, 255, 255, 255, total_flip)
+-			video.renderSpriteState(cusprites.drillGlowRing, x + drill_dx, y + drill_dy, 1, drill_angle * 0.5, math.clamp(jolt * 1000 - 800, 0, 255), 255, 255, 255, total_flip)
++			video.renderSpriteState(cusprites.drillGlow, x + drill_dx, y + drill_dy, 1, drill_angle, jolt * 255, 255, 255, 255,
++				total_flip)
++			video.renderSpriteState(cusprites.drillGlowRing, x + drill_dx, y + drill_dy, 1, drill_angle * 0.5,
++				math.clamp(jolt * 1000 - 800, 0, 255), 255, 255, 255, total_flip)
+ 		end
+ 		
+ 		video.renderSpriteState(cusprites.tele3, x + tele_dx, y + tele_dy, 1, angle, 255, r, g, b, total_flip)
+@@ -27770,7 +27930,8 @@
+ 			
+ 			for i = 1, 2 do
+ 				local shine = math_max(0, math_cos(math_pi * i + _time * 0.1 + ux * 0.02)) * glow
+-				local ccr, ccg, ccb = colors.fadeVariables(cr, cg, cb, COLORS.crystalHackHighlight, math_max(0, shine - 0.8) / 0.2)
++				local ccr, ccg, ccb = colors.fadeVariables(cr, cg, cb, COLORS.crystalHackHighlight,
++					math_max(0, shine - 0.8) / 0.2)
+ 				
+ 				video.renderSpriteState(cusprites.shine[i], ux, uy, 1, angle, shine * 255, ccr, ccg, ccb, flipped)
+ 			end
+@@ -27939,7 +28100,8 @@
+ 			
+ 			for i = 1, 2 do
+ 				local shine = math_max(0, math_cos(math_pi * i + _time * 0.1 + x * 0.02)) * glow
+-				local ccr, ccg, ccb = colors.fadeVariables(cr, cg, cb, COLORS.crystalHackHighlight, math_max(0, shine - 0.8) / 0.2)
++				local ccr, ccg, ccb = colors.fadeVariables(cr, cg, cb, COLORS.crystalHackHighlight,
++					math_max(0, shine - 0.8) / 0.2)
+ 				
+ 				video.renderSpriteState(cusprites.shine[i], x, y, 1, angle, shine * 255, ccr, ccg, ccb, flipped)
+ 			end
+@@ -28047,10 +28209,15 @@
+ 		
+ 		g_factor = (g_factor * 0.2 + 0.8 * math_min(1, math_max(0, math_cos(_time * math_pi * 3) * 1))) * glow
+ 		
+-		video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 255, math_min(255, r / 5 * (1 - g_factor) + g_factor * color.r), math_min(255, g / 5 * (1 - g_factor) + g_factor * color.g), math_min(255, b / 5 * (1 - g_factor) + g_factor * color.b), facingRight)
+-		video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle, math_min(255, math_max(0, g_factor * 255 * 1.1 - 65)), color.r, color.g, color.b, facingRight)
++		video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 255,
++			math_min(255, r / 5 * (1 - g_factor) + g_factor * color.r),
++			math_min(255, g / 5 * (1 - g_factor) + g_factor * color.g),
++			math_min(255, b / 5 * (1 - g_factor) + g_factor * color.b), facingRight)
++		video.renderSpriteState(self.def.customSprites.glow, x, y, 1, angle,
++			math_min(255, math_max(0, g_factor * 255 * 1.1 - 65)), color.r, color.g, color.b, facingRight)
+ 	else
+-		video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 255, 255 * glow, 255 * glow, 255 * glow, facingRight)
++		video.renderSpriteState(self.def.customSprites.light, x, y, 1, angle, 255, 255 * glow, 255 * glow, 255 * glow,
++			facingRight)
+ 	end
+ end
+ 
+@@ -28193,7 +28360,8 @@
+ 		video.renderSpriteState(def.customSprites.smallOutline, x, y, 1, angle, 255, r, g, b, facingRight)
+ 		
+ 		if self.expandedTimer > 0 then
+-			video.renderSpriteState(def.customSprites.outline, x, y, 1 * math_easeOut(self.expandedTimer), angle, 255, r, g, b, facingRight)
++			video.renderSpriteState(def.customSprites.outline, x, y, 1 * math_easeOut(self.expandedTimer), angle, 255, r, g, b,
++				facingRight)
+ 			video.renderSpriteState(def.sprite, x, y, 1 * math_easeOut(self.expandedTimer), angle, 255, r, g, b, facingRight)
+ 		end
+ 		
+@@ -28664,10 +28832,13 @@
+ 			
+ 			if details > 0 then
+ 				for i = 1, 3 + self.def.credits / 3 * details do
+-					local fx = object:emitFxAt("itemPickupSpark", object.x + math_randomGaussian() * math_cos(math_randomAngle()) * (5 + self.def.credits / 5), object.y + math_randomGaussian() * math_sin(math_randomAngle()) * (5 + self.def.credits / 5))
++					local fx = object:emitFxAt("itemPickupSpark",
++						object.x + math_randomGaussian() * math_cos(math_randomAngle()) * (5 + self.def.credits / 5),
++						object.y + math_randomGaussian() * math_sin(math_randomAngle()) * (5 + self.def.credits / 5))
+ 					
+ 					fx:setTime(-i / 15)
+-					fx:setSpeed(math_angleBetweenPoints(fx.x, fx.y, object.x, object.y) + math_pi, math_distance(fx.x, fx.y, object.x, object.y) * 10)
++					fx:setSpeed(math_angleBetweenPoints(fx.x, fx.y, object.x, object.y) + math_pi,
++						math_distance(fx.x, fx.y, object.x, object.y) * 10)
+ 					fx:setTarget(actor)
+ 				end
+ 			end
+@@ -28777,17 +28948,18 @@
+ 
+ local defs_items = DEFS.items
+ 
+-function defs_items.pre_init()
+-	for index, item in pairs(ITEMS) do
++function defs_items.pre_init(table)
++	for index, item in pairs(table) do
+ 		if item.spriteName and item.droppable == nil then
+ 			item.droppable = true
+ 		end
+ 	end
+ end
+ 
+-function defs_items.init()
+-	for index, item in pairs(ITEMS) do
+-		def_logic.defs_apply_key(ITEMS, index)
++function defs_items.init(table)
++	for index, item in pairs(table) do
++		if not item.logic_applied then
++			def_logic.defs_apply_key(table, index)
+ 		
+ 		if not item.aimsAtActorsMethod then
+ 			item.aimsAtActorsMethod = defaultAimsAtActors
+@@ -28933,7 +29105,7 @@
+ 				for _, upg in pairs(item.upgrades) do
+ 					addUpgrade(upg, index)
+ 					
+-					local udef = ITEMS[upg]
++						local udef = table[upg]
+ 					
+ 					udef.maxUpgrades = (udef.maxUpgrades or 0) + (item.maxLevel or 1)
+ 					
+@@ -28944,7 +29116,7 @@
+ 			else
+ 				addUpgrade(item.upgrades, index)
+ 				
+-				local udef = ITEMS[item.upgrades]
++					local udef = table[item.upgrades]
+ 				
+ 				udef.maxUpgrades = (udef.maxUpgrades or 0) + (item.maxLevel or 1)
+ 				
+@@ -29058,8 +29230,9 @@
+ 		
+ 		item.localizedNameId = "item_" .. (item.localizedId or index)
+ 	end
++	end
+ 	
+-	for index, item in pairs(ITEMS) do
++	for index, item in pairs(table) do
+ 		if not item.renderMethod then
+ 			if item.upgradable then
+ 				item.renderMethod = genericRenderUpgrades
+@@ -29098,6 +29271,4 @@
+ 			end
+ 		end
+ 	end
+-	
+-	math.initRandom()
+ end
+diff -X exclude -rubN daisyMoon/launcher.lua moddedDaisyMoon/launcher.lua
+--- daisyMoon/launcher.lua	2023-11-30 02:17:06.624108474 +0100
++++ moddedDaisyMoon/launcher.lua	2023-12-18 17:31:42.085658606 +0100
+@@ -1,5 +1,5 @@
+ -- chunkname: @cobalt/daisyMoon/launcher.lua
+-
++print("Launcher used")
+ math.randomseed(os.time())
+ 
+ ARGS = {}
+diff -X exclude -rubN daisyMoon/mainApp.lua moddedDaisyMoon/mainApp.lua
+--- daisyMoon/mainApp.lua	2023-11-30 02:17:06.622108480 +0100
++++ moddedDaisyMoon/mainApp.lua	2023-12-18 17:31:42.111658568 +0100
+@@ -856,7 +856,8 @@
+ 	mod = true,
+ 	galaxy = true,
+ 	talk = true,
+-	asset = true
++	asset = true,
++	alloy = true,
+ }
+ 
+ function app.isModeEditor(mode)
+@@ -871,9 +872,10 @@
+ 	"world",
+ 	"mod",
+ 	"asset",
++	"alloy",
+ 	"stageSet",
+ 	"talk",
+-	"team"
++	"team",
+ }
+ 
+ function app.disableEditStates()
+@@ -900,6 +902,8 @@
+ 		dofile("stageEdit.lua")
+ 		dofile("worldEdit.lua")
+ 		dofile("modEdit.lua")
++		dofile("alloyEdit.lua")
++		dofile("asset.lua")
+ 		dofile("stageSetEdit.lua")
+ 		dofile("adventureEdit.lua")
+ 		dofile("talkEdit.lua")
+@@ -1174,6 +1178,12 @@
+ 			states.disable("asset")
+ 		end
+ 		
++		if not states.get("alloy") then
++			local al = states.addNewOfClass(AlloyEdit, "alloy")
++
++			states.disable("alloy")
++		end
++		
+ 		if states.get("edit") and states.isEnabled("edit") then
+ 			states.disable("edit")
+ 		end
+@@ -1211,6 +1221,24 @@
+ 		states.destroy("game")
+ 		app.disableEditStatesExcept("galaxy")
+ 		states.enable("galaxy")
++	elseif toMode == "alloy" then
++		app.verifyEditors()
++		states.enable("input")
++		states.get("music"):stopCurrentMusic()
++		
++		if not states.get("alloy") then
++			local al = states.addNewOfClass(AlloyEdit, "alloy")
++
++			if _devState.alloy and _devState.alloy ~= "" then
++				resources.load("alloy", _devState.alloy, al, true)
++			end
++
++			states.disable("alloy")
++		end
++		states.set_mouse_visible_locked("alloy", true, false)
++		states.destroy("game")
++		app.disableEditStatesExcept("alloy")
++		states.enable("alloy")
+ 	elseif toMode == "game" then
+ 		app.runtime.showMouse = false
+ 		
+diff -X exclude -rubN daisyMoon/mainConstants.lua moddedDaisyMoon/mainConstants.lua
+--- daisyMoon/mainConstants.lua	2023-11-30 02:17:06.624108474 +0100
++++ moddedDaisyMoon/mainConstants.lua	2023-12-18 17:31:42.111658568 +0100
+@@ -207,6 +207,19 @@
+ 		r = 130
+ 	}
+ }
++RESOURCES.alloy = {
++	variable = "alloy",
++	editor = "alloy",
++	localization = true,
++	meta = "alloy",
++	list = "alloys",
++	folder = "alloys",
++	color = {
++		g = 32,
++		b = 128,
++		r = 128
++	}
++}
+ PREFIXES = {
+ 	slot = "slot"
+ }
+@@ -247,6 +260,7 @@
+ 	workshop = "workshop",
+ 	ircuser = "irc",
+ 	mod = "mods",
++	alloy = "alloys",
+ 	betstats = "irc_stats",
+ 	slot = "slots",
+ 	log = "logs",
+diff -X exclude -rubN daisyMoon/main.lua moddedDaisyMoon/main.lua
+--- daisyMoon/main.lua	2023-11-30 02:17:06.629108459 +0100
++++ moddedDaisyMoon/main.lua	2023-12-18 17:31:42.111658568 +0100
+@@ -73,10 +73,14 @@
+ local math = math
+ 
+ sorting = {}
+-app.developerMode = daisy.isDeveloperModeEnabled()
++--app.developerMode = daisy.isDeveloperModeEnabled()
++app.developerMode = true
+ 
+ dofile("gameDependencies.lua")
+ 
++-- testing and debug
++--AlloyCustomTest()
++
+ function drequire(v)
+ 	local preload = package.preload[v]
+ 	
+@@ -214,7 +218,8 @@
+ 
+ local function defsInit()
+ 	DEFS.hint_layouts.verify()
+-	DEFS.items.pre_init()
++	AlloyPreInitItems()
++	--DEFS.items.pre_init()
+ end
+ 
+ function DEFS.load()
+@@ -517,8 +522,10 @@
+ 	colors.init()
+ 	profiles.init()
+ 	attacks.init()
+-	DEFS.items.init()
+-	DEFS.objects.init()
++	AlloyInit()
++	AlloyAutoLoad()
++	--DEFS.items.init()
++	--DEFS.objects.init()
+ 	
+ 	if DEDICATED then
+ 		return 
+@@ -548,7 +555,8 @@
+ 		end
+ 	end
+ 	
+-	DEBUG.showDebug = false
++	-- additional debug data if needed
++	DEBUG.showDebug = true
+ 	
+ 	if DEBUG.minimalMode then
+ 		states.add(MenuState:new(), "menu")
+@@ -598,6 +606,8 @@
+ hook.add("networkInit", networkInit)
+ hook.add("loadingUpdate", loadingUpdate)
+ 
++hook.add("frameRender", AlloyRenderer)
++
+ account = nil
+ 
+ local function mainClose()
+@@ -649,7 +659,8 @@
+ 				daisy.resetGame()
+ 			end
+ 		end
+-	elseif false and key == 112 and _config.dev then
++		-- hmmmm this might be worth looking at
++	elseif key == 112 and _config.dev then
+ 		local b = {}
+ 		
+ 		function b:onOk(text)
+@@ -667,8 +678,10 @@
+ 		
+ 		_editDialogs.createFileDialog("Open Replay", daisy.getDocumentsFolderPath(FOLDERS.replay), EXTENSIONS.replay, b)
+ 	else
++		if not ALLOY_BLOCK_INPUT then
+ 		states.keyPressed(key)
+ 	end
++	end
+ 	
+ 	if key == 122 then
+ 		local path = daisy.getDocumentsFolderPath() .. "/screenshots/"
+@@ -685,13 +698,16 @@
+ 		return 
+ 	end
+ 	
++	if not ALLOY_BLOCK_INPUT then
+ 	states.keyCharacter(byte)
++	end
+ end
+ 
+ hook.add("keyCharacter", keyCharacter)
+ 
+ local function mouseClick(x, y, button, clickCount)
+ 	D.mousePressed(button)
++
+ 	states.mouseClick(x, y, button, clickCount)
+ end
+ 
+diff -X exclude -rubN daisyMoon/objects.lua moddedDaisyMoon/objects.lua
+--- daisyMoon/objects.lua	2023-11-30 02:17:06.631108453 +0100
++++ moddedDaisyMoon/objects.lua	2023-12-18 17:31:42.131658538 +0100
+@@ -2765,10 +2765,6 @@
+ 	self.anyShader = true
+ end
+ 
+-function Object:getColdResistance()
+-	return 0.5
+-end
+-
+ function Object:getHeatResistance()
+ 	return self.def.heatResistance or 0.5
+ end
+@@ -3191,7 +3187,8 @@
+ 			D.addToGraph("ray", 1)
+ 		end
+ 		
+-		local result, hitx, hity, nx, ny, userData, id = self.map.physics:raycastPoints(self.x * resolution, self.y * resolution, tx * resolution, ty * resolution, false, colCat, colMask, -(self.body or 0))
++		local result, hitx, hity, nx, ny, userData, id = self.map.physics:raycastPoints(self.x * resolution,
++			self.y * resolution, tx * resolution, ty * resolution, false, colCat, colMask, -(self.body or 0))
+ 		
+ 		if result then
+ 			finalx = hitx / resolution
+@@ -3205,7 +3202,9 @@
+ 			D.addToGraph("ray", 1)
+ 		end
+ 		
+-		local result, hitx, hity, nx, ny, userData, id = self.map.physics:raycastPoints(self.x * resolution, self.y * resolution, (self.x + math_cos(self.angle) * (maxDist or 2000)) * resolution, (self.y + math_sin(self.angle) * (maxDist or 2000)) * resolution, true, colCat, colMask, bodyFilter)
++		local result, hitx, hity, nx, ny, userData, id = self.map.physics:raycastPoints(self.x * resolution,
++			self.y * resolution, (self.x + math_cos(self.angle) * (maxDist or 2000)) * resolution,
++			(self.y + math_sin(self.angle) * (maxDist or 2000)) * resolution, true, colCat, colMask, bodyFilter)
+ 		
+ 		if result then
+ 			finalx = hitx / resolution
+@@ -3451,14 +3450,16 @@
+ 			end
+ 		elseif self.fatigue then
+ 			if self.map.physics:isEntitySleeping(self.body) then
+-				video.renderTextSprites(string.format("%.2f", self.fatigue) .. " X", x, y - 20, 1, "small", 255, 255, 0, 255, nil, 0.7)
++				video.renderTextSprites(string.format("%.2f", self.fatigue) .. " X", x, y - 20, 1, "small", 255, 255, 0, 255, nil,
++					0.7)
+ 			else
+ 				video.renderTextSprites(string.format("%.2f", self.fatigue), x, y - 20, 1, "small", 255, 255, 0, 0, nil, 0.7)
+ 			end
+ 		end
+ 		
+ 		if self.fatigue then
+-			video.renderTextSprites(self.map.physics:getEntityFatigue(self.body), x + 75, y, 0, "small", 255, 0, 128, 0, nil, 0.6)
++			video.renderTextSprites(self.map.physics:getEntityFatigue(self.body), x + 75, y, 0, "small", 255, 0, 128, 0, nil,
++				0.6)
+ 		end
+ 		
+ 		if self.allowPhysicsManipulation then
+@@ -3489,11 +3490,14 @@
+ 	end
+ 	
+ 	if DEBUG.showObjectSpeed and not self.def.debris then
+-		video.renderTextSprites(math_round(self:getSpeed()) .. " *" .. string.simplifyNumber(self.timeFactor, 2), x, y - 15, 1, "small", 255, 128, 255, 128, nil, 0.7)
+-		video.renderTextSprites(string.simplifyNumber(self.dx, 2) .. ",  " .. string.simplifyNumber(self.dy, 2), x, y - 1, 1, "small", 255, 128, 128, 255, nil, 0.5)
++		video.renderTextSprites(math_round(self:getSpeed()) .. " *" .. string.simplifyNumber(self.timeFactor, 2), x, y - 15,
++			1, "small", 255, 128, 255, 128, nil, 0.7)
++		video.renderTextSprites(string.simplifyNumber(self.dx, 2) .. ",  " .. string.simplifyNumber(self.dy, 2), x, y - 1, 1,
++			"small", 255, 128, 128, 255, nil, 0.5)
+ 		
+ 		if self.fluidType and self.submersion then
+-			video.renderSpriteLine(x, y, x, y - self.submersion * 100, 64, 255 * self.submersion, 255, 128, nil, 0.75 + 1.25 * self.timeFactor)
++			video.renderSpriteLine(x, y, x, y - self.submersion * 100, 64, 255 * self.submersion, 255, 128, nil,
++				0.75 + 1.25 * self.timeFactor)
+ 		end
+ 	end
+ end
+@@ -3601,7 +3605,8 @@
+ 	local climbingTargetScale = self.smoothTargetScale
+ 	
+ 	if targetScale and climbingTargetScale ~= targetScale then
+-		climbingTargetScale = math.approach(climbingTargetScale, targetScale, time * math_abs(targetScale - climbingTargetScale) + time)
++		climbingTargetScale = math.approach(climbingTargetScale, targetScale,
++			time * math_abs(targetScale - climbingTargetScale) + time)
+ 		self.smoothTargetScale = climbingTargetScale
+ 	end
+ 	
+@@ -3696,7 +3701,9 @@
+ 			local offAng = math_randomAngle()
+ 			local obj = self:emitSpark("postTinyDestroySpark")
+ 			
+-			obj:setSpeed(offAng, math_random() * 2 / math_min(1, math_max(0.1, self.sparkShootTimer)) + 5 / math_min(1, math_max(0.1, self.sparkShootTimer)))
++			obj:setSpeed(offAng,
++				math_random() * 2 / math_min(1, math_max(0.1, self.sparkShootTimer)) +
++				5 / math_min(1, math_max(0.1, self.sparkShootTimer)))
+ 			obj:addSpeedXY(self.dx, self.dy)
+ 			
+ 			obj.dieOnCollision = true
+@@ -3717,7 +3724,8 @@
+ 	if self.burnTimer > 0 then
+ 		self.burnTimer = math_max(0, self.burnTimer - time)
+ 		
+-		self:emitLoop("flame", math_min(1, self.burnTimer), math_min(1, self.burnTimer) * 0.5 + 0.5, math_min(1, self.burnTimer) * RANGES.long)
++		self:emitLoop("flame", math_min(1, self.burnTimer), math_min(1, self.burnTimer) * 0.5 + 0.5,
++			math_min(1, self.burnTimer) * RANGES.long)
+ 		
+ 		if math_random() < time * 15 * math_min(1, self.burnTimer) * math_max(0.5, self:getSpeed() * 0.5) then
+ 			local ang = math_pi * 2 * math_random()
+@@ -3946,7 +3954,8 @@
+ 				
+ 				if not self.isSleeping then
+ 					local adiff = math_abs(self.angle - physics:getEntityAngle(body)) * 300
+-					local motionless = self.motionless - (math_abs(self.dx) + math_abs(self.dy) + adiff) * 2 * time + time * (self.motionless + 1)
++					local motionless = self.motionless - (math_abs(self.dx) + math_abs(self.dy) + adiff) * 2 * time +
++					time * (self.motionless + 1)
+ 					
+ 					self.motionless = math_clamp(motionless, 0, 5)
+ 					
+@@ -3966,7 +3975,9 @@
+ 				
+ 				local dx, dy = physics:getEntitySpeed(body)
+ 				local adiff = math_abs(self.angle - physics:getEntityAngle(body)) * 300
+-				local motionless = self.motionless - (math_abs(dx) + math_abs(dy) + adiff) / math_max(MIN_FACTOR, self.timeFactor) * 2 * time + time * (self.motionless + 1)
++				local motionless = self.motionless -
++				(math_abs(dx) + math_abs(dy) + adiff) / math_max(MIN_FACTOR, self.timeFactor) * 2 * time +
++				time * (self.motionless + 1)
+ 				
+ 				self.motionless = math_clamp(motionless, 0, 3)
+ 				
+@@ -4052,9 +4063,11 @@
+ 				local hit, hitTarget2, hitx2, hity2 = self:getRayHitAt(predX, predY, LOS.ground)
+ 				
+ 				if hit then
+-					local dist = math.distance(self.x, self.y, hitx2, hity2) * 0.5 + (math_abs(self.x - hitx2) + math_abs(self.y - hity2)) * 0.5
++					local dist = math.distance(self.x, self.y, hitx2, hity2) * 0.5 +
++					(math_abs(self.x - hitx2) + math_abs(self.y - hity2)) * 0.5
+ 					
+-					pred_time = math.clamp(dist / math.max(1, speed / self.map.resolution * self.pingTimeFactor), GLOBAL.prediciton_catchup_min, pred_time)
++					pred_time = math.clamp(dist / math.max(1, speed / self.map.resolution * self.pingTimeFactor),
++						GLOBAL.prediciton_catchup_min, pred_time)
+ 					self.prediction_lifetime = pred_time
+ 					
+ 					break
+@@ -4329,7 +4342,8 @@
+ end
+ 
+ function Object.postPhysicsHandlingImpactsList(object_list, time)
+-	local math_pi, math_abs, math_angleDifference, math_angleBetweenPoints = math_pi, math_abs, math_angleDifference, math_angleBetweenPoints
++	local math_pi, math_abs, math_angleDifference, math_angleBetweenPoints = math_pi, math_abs, math_angleDifference,
++			math_angleBetweenPoints
+ 	local OBJECTS = OBJECTS
+ 	local pairs, next = pairs, next
+ 	local math_approach, math_distance = math.approach, math.distance
+@@ -4432,7 +4446,8 @@
+ 									ndy = math_approach(ndy, rdy, fact)
+ 									
+ 									setSpeedXY(self, ndx, ndy)
+-									applyEntityImpulse(physics, body, impact.x * resolution, impact.y * resolution, t_dx * mass_time, t_dy * mass_time)
++									applyEntityImpulse(physics, body, impact.x * resolution, impact.y * resolution, t_dx * mass_time,
++										t_dy * mass_time)
+ 								end
+ 							elseif category == "object" then
+ 								local tCollisionMethod = target.def.collisionMethod
+@@ -4974,7 +4989,8 @@
+ 			local carve = math_approachAngle(speedAng, targetAngle, time * math_pi * 2 * rotation)
+ 			local speed = self:getSpeed()
+ 			
+-			self:setSpeedXY(self.dx * (1 - time * carving) + carving * time * math_cos(carve) * speed, self.dy * (1 - time * carving) + carving * time * math_sin(carve) * speed)
++			self:setSpeedXY(self.dx * (1 - time * carving) + carving * time * math_cos(carve) * speed,
++				self.dy * (1 - time * carving) + carving * time * math_sin(carve) * speed)
+ 		end
+ 	end
+ end
+@@ -5123,15 +5139,19 @@
+ 
+ function Object:stopSpeed(angle, control, time)
+ 	if self.dx > 0 then
+-		self.dx = self.dx - math_min(math_abs(math_cos(angle)) * self.dx, math_abs(math_cos(angle)) * self.dx * time * control)
++		self.dx = self.dx -
++		math_min(math_abs(math_cos(angle)) * self.dx, math_abs(math_cos(angle)) * self.dx * time * control)
+ 	elseif self.dx < 0 then
+-		self.dx = self.dx - math_max(math_abs(math_cos(angle)) * self.dx, math_abs(math_cos(angle)) * self.dx * time * control)
++		self.dx = self.dx -
++		math_max(math_abs(math_cos(angle)) * self.dx, math_abs(math_cos(angle)) * self.dx * time * control)
+ 	end
+ 	
+ 	if self.dy > 0 then
+-		self.dy = self.dy - math_min(math_abs(math_sin(angle)) * self.dy, math_abs(math_sin(angle)) * self.dy * time * control)
++		self.dy = self.dy -
++		math_min(math_abs(math_sin(angle)) * self.dy, math_abs(math_sin(angle)) * self.dy * time * control)
+ 	elseif self.dy < 0 then
+-		self.dy = self.dy - math_max(math_abs(math_sin(angle)) * self.dy, math_abs(math_sin(angle)) * self.dy * time * control)
++		self.dy = self.dy -
++		math_max(math_abs(math_sin(angle)) * self.dy, math_abs(math_sin(angle)) * self.dy * time * control)
+ 	end
+ end
+ 
+@@ -5226,7 +5246,8 @@
+ Object.propelSelf = Object.propel
+ 
+ function Object:setSpeedVector(angle, speed)
+-	local offVectorX, offVectorY = _vectorMath.project(self.dx, self.dy, math_cos(angle + math_pi * 0.5), math_sin(angle + math_pi * 0.5))
++	local offVectorX, offVectorY = _vectorMath.project(self.dx, self.dy, math_cos(angle + math_pi * 0.5),
++		math_sin(angle + math_pi * 0.5))
+ 	
+ 	self:wake()
+ 	
+@@ -5339,11 +5360,13 @@
+ end
+ 
+ local function genericColorObjectRender(self, x, y, r, g, b)
+-	video.renderSpriteState(self.def.sprite, x, y, 1, self.angle, self.a or 255, self.r or r, self.g or g, self.b or b, self.flipped)
++	video.renderSpriteState(self.def.sprite, x, y, 1, self.angle, self.a or 255, self.r or r, self.g or g, self.b or b,
++		self.flipped)
+ end
+ 
+ local function genericBrightObjectRender(self, x, y, r, g, b)
+-	video.renderSpriteState(self.def.sprite, x, y, 1, self.angle, 255, (self.r or 1) * 255, (self.g or 1) * 255, (self.b or 1) * 255, self.flipped)
++	video.renderSpriteState(self.def.sprite, x, y, 1, self.angle, 255, (self.r or 1) * 255, (self.g or 1) * 255,
++		(self.b or 1) * 255, self.flipped)
+ end
+ 
+ local function physicsObjectRender(self, x, y)
+@@ -5566,7 +5589,8 @@
+ 	for i = 1, math_random(2) + 3 * detail + extra * (0.2 + 0.8 * detail) do
+ 		local fx = self:emitFxAt("phaserSpark", x, y)
+ 		
+-		fx:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi, math_random(2000) + extra * 200)
++		fx:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi,
++			math_random(2000) + extra * 200)
+ 		fx:setAngle(math_random() * math_pi * 2)
+ 		fx:setTime(math_random() * 0.1)
+ 	end
+@@ -5632,7 +5656,8 @@
+ 		self.dx = self.dx - self.dx * time * self.airFriction + -math_sin(diff) * self.dy * time * 16
+ 		
+ 		if self.allowPhysicsManipulation then
+-			self:setAngleSpeed(-math_sin(diff) * self.dy * time * 16 - self.airFriction * time * self.map.physics:getEntityAngleSpeed(self.body) / math_pi)
++			self:setAngleSpeed(-math_sin(diff) * self.dy * time * 16 -
++			self.airFriction * time * self.map.physics:getEntityAngleSpeed(self.body) / math_pi)
+ 		end
+ 	end
+ 	
+@@ -5665,7 +5690,8 @@
+ 		r, g, b = self:getGlowColor(r, g, b)
+ 	end
+ 	
+-	video.renderSpriteState(self.sprite, x + math_cos(offAngle + self.angle) * offDist, y + math_sin(offAngle + self.angle) * offDist, 1, self.angle, 255 * self.fade, r, g, b, flipped)
++	video.renderSpriteState(self.sprite, x + math_cos(offAngle + self.angle) * offDist,
++		y + math_sin(offAngle + self.angle) * offDist, 1, self.angle, 255 * self.fade, r, g, b, flipped)
+ end
+ 
+ local function debrisCollision(self, impact)
+@@ -5933,13 +5959,19 @@
+ 			local shine = self.pickupableShine
+ 			
+ 			if item.fragile and not item.repaired then
+-				video.renderSpriteState(FX.itemShine.sprite, x, y, 0.5 * math_max(0, shine + 0.15 * math_cos(self.time + (_time + item.countId / 10) * 0.8 * math_pi) * shine), 0, 192 * shine, 255, 64, 64)
++				video.renderSpriteState(FX.itemShine.sprite, x, y,
++					0.5 * math_max(0, shine + 0.15 * math_cos(self.time + (_time + item.countId / 10) * 0.8 * math_pi) * shine), 0,
++					192 * shine, 255, 64, 64)
+ 			elseif idef.legend then
+-				video.renderSpriteState(FX.itemShine.sprite, x, y, 3.2 * shine + 0.05 * math_cos(self.time * 4 + (_time + item.countId / 10) * 0.8 * math_pi) * shine, 0, 255 * shine / 10, 255, 234.60000000000002, 216.75)
++				video.renderSpriteState(FX.itemShine.sprite, x, y,
++					3.2 * shine + 0.05 * math_cos(self.time * 4 + (_time + item.countId / 10) * 0.8 * math_pi) * shine, 0,
++					255 * shine / 10, 255, 234.60000000000002, 216.75)
+ 			elseif idef.weapon then
+ 				local sh = self.autoPickup and 30 or 0.8
+ 				
+-				video.renderSpriteState(FX.itemShine.sprite, x, y, 0.5 * math_max(0, 1 * shine + 0.15 * math_cos(self.time + (_time + item.countId / 10) * 1 * math_pi) * shine), 0, shine * 64, 255, 255, 229.5)
++				video.renderSpriteState(FX.itemShine.sprite, x, y,
++					0.5 * math_max(0, 1 * shine + 0.15 * math_cos(self.time + (_time + item.countId / 10) * 1 * math_pi) * shine),
++					0, shine * 64, 255, 255, 229.5)
+ 			end
+ 		end
+ 		
+@@ -5965,15 +5997,20 @@
+ 		local count_id = item.countId
+ 		local count_offset = (_time + count_id / 10) * 0.8 * math_pi
+ 		
+-		video.renderSpriteState(sprite, x, y, 1.2 * shine + 0.05 * math_cos(my_time * 4 + count_offset) * shine, 0.05 * math_cos(my_time * 4 + count_offset) * shine * math_pi * 0.4 - math_pi * 0.25, 255 * shine / 10, 255, 234.60000000000002, 216.75)
+-		video.renderSpriteState(sprite, x, y, 1.2 * shine + 0.05 * math_cos(my_time * 4 + count_offset) * shine, -0.05 * math_cos(my_time * 4 + count_offset) * shine * math_pi * 0.4 + math_pi * 0.25, 255 * shine / 10, 255, 234.60000000000002, 216.75)
++		video.renderSpriteState(sprite, x, y, 1.2 * shine + 0.05 * math_cos(my_time * 4 + count_offset) * shine,
++			0.05 * math_cos(my_time * 4 + count_offset) * shine * math_pi * 0.4 - math_pi * 0.25, 255 * shine / 10, 255,
++			234.60000000000002, 216.75)
++		video.renderSpriteState(sprite, x, y, 1.2 * shine + 0.05 * math_cos(my_time * 4 + count_offset) * shine,
++			-0.05 * math_cos(my_time * 4 + count_offset) * shine * math_pi * 0.4 + math_pi * 0.25, 255 * shine / 10, 255,
++			234.60000000000002, 216.75)
+ 	end
+ 	
+ 	if self.blinkTimer and self.blinkTimer > 0 then
+ 		local blink = math_abs(math_cos(math_seededRandomNumber(item.countId) * math_pi * 2 + self.time * 8))
+ 		local amt = math_min(1, self.blinkTimer * 4)
+ 		
+-		r, g, b = math_max(r * 0.5, r * (1 - amt) + blink * 255 * amt), math_max(g * 0.5, g * (1 - amt) + blink * 255 * amt), math_max(b * 0.5, b * (1 - amt) + blink * 255 * amt)
++		r, g, b = math_max(r * 0.5, r * (1 - amt) + blink * 255 * amt), math_max(g * 0.5, g * (1 - amt) + blink * 255 * amt),
++				math_max(b * 0.5, b * (1 - amt) + blink * 255 * amt)
+ 	end
+ 	
+ 	if self.highlighted then
+@@ -5993,17 +6030,25 @@
+ 		local numStack = item:getStack()
+ 		
+ 		if numStack > 1 then
+-			item:renderStack(math_min(5, numStack), x + math_cos(offAngle + self.angle) * offDist, y + math_sin(offAngle + self.angle) * offDist, self.angle, r, g, b, not self.flipped)
+-			video.renderTextSprites(numStack, x, y - 30, 1, "small", self.pickupableShine * 170 - 64 * math_cos(self.time + (_time + item.countId / 10) * 0.8 * math_pi) * self.pickupableShine, TINTS.orange.r * 255, TINTS.orange.g * 255, 128 * TINTS.orange.b)
++			item:renderStack(math_min(5, numStack), x + math_cos(offAngle + self.angle) * offDist,
++				y + math_sin(offAngle + self.angle) * offDist, self.angle, r, g, b, not self.flipped)
++			video.renderTextSprites(numStack, x, y - 30, 1, "small",
++				self.pickupableShine * 170 -
++				64 * math_cos(self.time + (_time + item.countId / 10) * 0.8 * math_pi) * self.pickupableShine,
++				TINTS.orange.r * 255, TINTS.orange.g * 255, 128 * TINTS.orange.b)
+ 		else
+-			item:render(x + math_cos(offAngle + self.angle) * offDist, y + math_sin(offAngle + self.angle) * offDist, self.angle, r, g, b, not self.flipped)
++			item:render(x + math_cos(offAngle + self.angle) * offDist, y + math_sin(offAngle + self.angle) * offDist,
++				self.angle, r, g, b, not self.flipped)
+ 		end
+ 	else
+ 		local numStack = item:getStack()
+ 		
+ 		if numStack > 1 then
+ 			item:renderStack(tostring(math_min(5, numStack)), x, y, self.angle, r, g, b, not self.flipped)
+-			video.renderTextSprites(tostring(numStack), x, y - 30, 1, "small", self.pickupableShine * 170 - 64 * math_cos(self.time + (_time + item.countId / 10) * 0.8 * math_pi) * self.pickupableShine, 255 * TINTS.orange.r, 255 * TINTS.orange.g, 128 * TINTS.orange.b)
++			video.renderTextSprites(tostring(numStack), x, y - 30, 1, "small",
++				self.pickupableShine * 170 -
++				64 * math_cos(self.time + (_time + item.countId / 10) * 0.8 * math_pi) * self.pickupableShine,
++				255 * TINTS.orange.r, 255 * TINTS.orange.g, 128 * TINTS.orange.b)
+ 		else
+ 			item:render(x, y, self.angle, r, g, b, not self.flipped)
+ 		end
+@@ -6084,7 +6129,8 @@
+ 		for i = 1, 4 + math_random(5) do
+ 			local fx = self:emitFxAt(self.def.killFx, x, y)
+ 			
+-			fx:setSpeed(impact.angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi, (math_random(speed / self.map.resolution + 1) - 1) / 8 + speed / self.map.resolution / 4)
++			fx:setSpeed(impact.angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi,
++				(math_random(speed / self.map.resolution + 1) - 1) / 8 + speed / self.map.resolution / 4)
+ 		end
+ 	end
+ 	
+@@ -6202,7 +6248,7 @@
+ 			def.getBulletTimeFactor = item.getObjectBulletTimeFactor
+ 		end
+ 		
+-		if def._generated_from_item then
++		if def._generated_from_item and not def.classifications then
+ 			for index, value in pairs(itemObjectTemplate) do
+ 				def[index] = value
+ 			end
+@@ -6348,7 +6394,8 @@
+ 	},
+ 	renderMethod = function(self, x, y, r, g, b)
+ 		if self.proximity then
+-			video.renderSpriteState(self.def.customSprites.proxy, x, y, 1, self.angle, 255, r, g * 0.25, b * 0.25, self.flipped)
++			video.renderSpriteState(self.def.customSprites.proxy, x, y, 1, self.angle, 255, r, g * 0.25, b * 0.25, self
++			.flipped)
+ 			video.renderSpriteState(self.def.customSprites.proxyLight, x, y, 1, self.angle, 255, 255, 255, 255, self.flipped)
+ 		else
+ 			video.renderSpriteState(self.def.sprite, x, y, 1, self.angle, 255, r, g, b, self.flipped)
+@@ -6453,7 +6500,7 @@
+ 
+ local function megaLightMapRender(self, x, y)
+ 	local color = COLORS.fireHigh
+-	local op = self.opacity^0.5
++	local op = self.opacity ^ 0.5
+ 	local ca, cr, cg, cb = color.a, color.r * op, color.g * op, color.b * op
+ 	
+ 	video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 2, self.angle, cr, cg, cb, self.flipped)
+@@ -6752,7 +6799,8 @@
+ 		local trail_width = def.trail_width
+ 		local tint = def.trail_tint
+ 		
+-		video.renderSpriteLine(lx, ly, x, y, tint.a * ca * op, tint.r * cr * op, tint.g * cg * op, tint.b * cb * op, SPRITES.lineLaserAdditive, true, trail_width)
++		video.renderSpriteLine(lx, ly, x, y, tint.a * ca * op, tint.r * cr * op, tint.g * cg * op, tint.b * cb * op,
++			SPRITES.lineLaserAdditive, true, trail_width)
+ 	end
+ end
+ 
+@@ -6875,7 +6923,8 @@
+ 			for i = 1, math_random(2, 4) * (def.deathSparksFactor or 1) * detail do
+ 				local obj = self:emitSparkAt(def.sparkFx, x, y)
+ 				
+-				obj:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi, math_random(20) * (def.deathSparksFactor or 1))
++				obj:setSpeed(angle + math_pi + math_random() * 0.5 * math_pi - math_random() * 0.5 * math_pi,
++					math_random(20) * (def.deathSparksFactor or 1))
+ 				obj:setAngle(math_random() * math_pi * 2)
+ 				
+ 				obj.deathFxName = "postTinySpark"
+@@ -7785,14 +7834,17 @@
+ 		if self.spawnTime > 0 then
+ 			local amt = math_max(0, 1 - self.spawnTime * self.spawnTime * self.spawnTime + (1 - self.spawnTime))
+ 			
+-			video.renderAdditiveSpriteState(self.def.customSprites.lavaBallGlowAdditive, x, y, 1 * amt * 2, self.angle, 255 * amt, 255 * amt, 255 * amt, false)
++			video.renderAdditiveSpriteState(self.def.customSprites.lavaBallGlowAdditive, x, y, 1 * amt * 2, self.angle,
++				255 * amt, 255 * amt, 255 * amt, false)
+ 		end
+ 	end,
+ 	lightMapRenderMethod = function(self, x, y)
+ 		local amt = 0.2 + math_abs(0.8 * math_cos(self.time * 44.5 * math_pi) * math_sin(self.time * 87.11 * math_pi))
+ 		
+-		video.renderAdditiveSpriteState(self.def.customSprites.lavaBallGlowAdditive, x, y, 1, self.angle, 255 * amt, 255 * amt, 255 * amt, false)
+-		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 0.35 + 0.25 * amt, self.angle, 255 * amt, 186 * amt, 32 * amt, false)
++		video.renderAdditiveSpriteState(self.def.customSprites.lavaBallGlowAdditive, x, y, 1, self.angle, 255 * amt,
++			255 * amt, 255 * amt, false)
++		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 0.35 + 0.25 * amt, self.angle, 255 * amt, 186 * amt, 32 * amt,
++			false)
+ 	end,
+ 	initMethod = genericLavaBallInit,
+ 	getGravity = function(self)
+@@ -7812,14 +7864,16 @@
+ 				for i = 1, 1 + math_random(2, 5) * detail do
+ 					local f = self:emitFx("lavaSplashGlow")
+ 					
+-					f:setSpeed(self.angle + math_pi + math_random() * 0.2 + math_random() * 0.2, math_random() * 100 - math_random() * 10)
++					f:setSpeed(self.angle + math_pi + math_random() * 0.2 + math_random() * 0.2,
++						math_random() * 100 - math_random() * 10)
+ 				end
+ 				
+ 				if detail > 0 then
+ 					for i = 1, math_random(1, 3) * detail do
+ 						local obj = self:emitSpark("lavaSpark")
+ 						
+-						obj:setSpeed(self.angle + math_random() * math_pi * 1 - math_random() * math_pi * 1, self:getSpeed() * 0.75 + 0.5 * math_random())
++						obj:setSpeed(self.angle + math_random() * math_pi * 1 - math_random() * math_pi * 1,
++							self:getSpeed() * 0.75 + 0.5 * math_random())
+ 						obj:setLifeTime(2)
+ 						self.map.physics:setEntityAngleSpeed(obj.body, math_random() * 2 * math_pi - math_random() * 2 * math_pi)
+ 					end
+@@ -7857,14 +7911,16 @@
+ 					for i = 1, 1 + math_random(2, 5) * detail do
+ 						local f = self:emitFx("lavaSplashGlow")
+ 						
+-						f:setSpeed(self.angle + math_pi + math_random() * 0.2 + math_random() * 0.2, math_random() * 100 - math_random() * 10)
++						f:setSpeed(self.angle + math_pi + math_random() * 0.2 + math_random() * 0.2,
++							math_random() * 100 - math_random() * 10)
+ 					end
+ 					
+ 					if detail > 0 then
+ 						for i = 1, math_random(1, 3) * detail do
+ 							local obj = self:emitSpark("lavaSpark")
+ 							
+-							obj:setSpeed(self.angle + math_random() * math_pi * 1 - math_random() * math_pi * 1, self:getSpeed() * 0.75 + 0.5 * math_random())
++							obj:setSpeed(self.angle + math_random() * math_pi * 1 - math_random() * math_pi * 1,
++								self:getSpeed() * 0.75 + 0.5 * math_random())
+ 							obj:setLifeTime(2)
+ 							self.map.physics:setEntityAngleSpeed(obj.body, math_random() * 2 * math_pi - math_random() * 2 * math_pi)
+ 						end
+@@ -8757,9 +8813,13 @@
+ 	renderMethod = function(self, x, y)
+ 		local color = self.color or COLORS.white
+ 		
+-		video.renderSpriteState(self.def.customSprites.glow, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2, self.angle + self.time * math_pi * 3, self.charge * (128 + 128 * self.sparkOpacity), color.r, color.g, color.b, self.flipped)
+-		video.renderSpriteState(self.def.sprite, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2, self.angle + self.time * math_pi * 3, self.charge * 55, color.r, color.g, color.b, self.flipped)
+-		video.renderSpriteState(self.def.customSprites.spark, x, y, 2.5 + math_cos(self.time * math_pi * 2) * 0.2, self.sparkAngle, self.charge * 255 * self.sparkOpacity, color.r, color.g, color.b, self.flipped)
++		video.renderSpriteState(self.def.customSprites.glow, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.angle + self.time * math_pi * 3, self.charge * (128 + 128 * self.sparkOpacity), color.r, color.g, color.b,
++			self.flipped)
++		video.renderSpriteState(self.def.sprite, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.angle + self.time * math_pi * 3, self.charge * 55, color.r, color.g, color.b, self.flipped)
++		video.renderSpriteState(self.def.customSprites.spark, x, y, 2.5 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.sparkAngle, self.charge * 255 * self.sparkOpacity, color.r, color.g, color.b, self.flipped)
+ 		
+ 		if self.player and self.delay <= 0 then
+ 			self.player:renderSmallHudName(x, y + 20, self.charge, 1)
+@@ -8779,7 +8839,8 @@
+ 	lightMapRenderMethod = function(self, x, y)
+ 		local color = self.actor and self.actor:getIdentityColor() or COLORS.white
+ 		
+-		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 1.5 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0, color.r, color.g, color.b, self.flipped)
++		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 1.5 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0,
++			color.r, color.g, color.b, self.flipped)
+ 	end,
+ 	hitMethod = function(self, impact, attack)
+ 		self:bounceWithVector(impact.angle, 0.25)
+@@ -8925,9 +8986,13 @@
+ 	renderMethod = function(self, x, y)
+ 		local color = self.color or COLORS.white
+ 		
+-		video.renderSpriteState(self.def.customSprites.glow, x, y, 2.5 + math_cos(self.time * math_pi * 2) * 0.3, self.angle + self.time * math_pi * 3, self.charge * (128 + 128 * self.sparkOpacity), color.r, color.g, color.b, self.flipped)
+-		video.renderSpriteState(self.def.sprite, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2, self.angle + self.time * math_pi * 3, self.charge * 55, color.r, color.g, color.b, self.flipped)
+-		video.renderSpriteState(self.def.customSprites.spark, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.5, self.sparkAngle, self.charge * 255 * self.sparkOpacity, color.r, color.g, color.b, self.flipped)
++		video.renderSpriteState(self.def.customSprites.glow, x, y, 2.5 + math_cos(self.time * math_pi * 2) * 0.3,
++			self.angle + self.time * math_pi * 3, self.charge * (128 + 128 * self.sparkOpacity), color.r, color.g, color.b,
++			self.flipped)
++		video.renderSpriteState(self.def.sprite, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.angle + self.time * math_pi * 3, self.charge * 55, color.r, color.g, color.b, self.flipped)
++		video.renderSpriteState(self.def.customSprites.spark, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.5,
++			self.sparkAngle, self.charge * 255 * self.sparkOpacity, color.r, color.g, color.b, self.flipped)
+ 	end,
+ 	initRuntimeMethod = function(self)
+ 		self.sparkOpacity = 0
+@@ -8943,7 +9008,8 @@
+ 	lightMapRenderMethod = function(self, x, y)
+ 		local color = self.actor and self.actor:getIdentityColor() or COLORS.white
+ 		
+-		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 2.5 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0, color.r, color.g, color.b, self.flipped)
++		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 2.5 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0,
++			color.r, color.g, color.b, self.flipped)
+ 	end,
+ 	onTeamSet = function(self, team)
+ 		self.color = team:getIdentityColor() or COLORS.white
+@@ -9061,9 +9127,13 @@
+ 	renderMethod = function(self, x, y)
+ 		local color = self.actor and self.actor:getIdentityColor() or COLORS.white
+ 		
+-		video.renderSpriteState(self.def.customSprites.glow, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2, self.angle + self.time * math_pi * 3, self.charge * (128 + 128 * self.sparkOpacity), color.r, color.g, color.b, self.flipped)
+-		video.renderSpriteState(self.def.sprite, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2, self.angle + self.time * math_pi * 3, self.charge * 55, color.r, color.g, color.b, self.flipped)
+-		video.renderSpriteState(self.def.customSprites.spark, x, y, 2.5 + math_cos(self.time * math_pi * 2) * 0.2, self.sparkAngle, self.charge * 255 * self.sparkOpacity, color.r, color.g, color.b, self.flipped)
++		video.renderSpriteState(self.def.customSprites.glow, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.angle + self.time * math_pi * 3, self.charge * (128 + 128 * self.sparkOpacity), color.r, color.g, color.b,
++			self.flipped)
++		video.renderSpriteState(self.def.sprite, x, y, 1.5 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.angle + self.time * math_pi * 3, self.charge * 55, color.r, color.g, color.b, self.flipped)
++		video.renderSpriteState(self.def.customSprites.spark, x, y, 2.5 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.sparkAngle, self.charge * 255 * self.sparkOpacity, color.r, color.g, color.b, self.flipped)
+ 	end,
+ 	initRuntimeMethod = function(self)
+ 		self.sparkOpacity = 0
+@@ -9082,7 +9152,8 @@
+ 	lightMapRenderMethod = function(self, x, y)
+ 		local color = self.actor and self.actor:getIdentityColor() or COLORS.white
+ 		
+-		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 1.5 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0, color.r, color.g, color.b, self.flipped)
++		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 1.5 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0,
++			color.r, color.g, color.b, self.flipped)
+ 	end,
+ 	hitMethod = function(self, impact, attack)
+ 		self:bounceWithVector(impact.angle, 0.25)
+@@ -9218,13 +9289,17 @@
+ 	magnetic = false,
+ 	id = "dematerializer",
+ 	renderMethod = function(self, x, y)
+-		video.renderSpriteState(self.def.customSprites.glow, x, y, 1 + math_cos(self.time * math_pi * 2) * 0.2, self.angle + self.time * math_pi * 3, 128 + 128 * self.sparkOpacity, 255, 255, 255, self.flipped)
+-		video.renderSpriteState(self.def.sprite, x, y, 1 + math_cos(self.time * math_pi * 2) * 0.2, self.angle + self.time * math_pi * 3, 255, 255, 255, 255, self.flipped)
+-		video.renderSpriteState(self.def.customSprites.spark, x, y, 2 + math_cos(self.time * math_pi * 2) * 0.2, self.sparkAngle, 255 * self.sparkOpacity, 255, 255, 255, self.flipped)
++		video.renderSpriteState(self.def.customSprites.glow, x, y, 1 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.angle + self.time * math_pi * 3, 128 + 128 * self.sparkOpacity, 255, 255, 255, self.flipped)
++		video.renderSpriteState(self.def.sprite, x, y, 1 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.angle + self.time * math_pi * 3, 255, 255, 255, 255, self.flipped)
++		video.renderSpriteState(self.def.customSprites.spark, x, y, 2 + math_cos(self.time * math_pi * 2) * 0.2,
++			self.sparkAngle, 255 * self.sparkOpacity, 255, 255, 255, self.flipped)
+ 	end,
+ 	initMethod = dematerializerObjectInit,
+ 	lightMapRenderMethod = function(self, x, y)
+-		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 1 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0, 255, 255, 255, self.flipped)
++		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, 1 * (math_abs(math_sin(self.time * math_pi * 9.5)) * 0.3), 0,
++			255, 255, 255, self.flipped)
+ 	end,
+ 	hitMethod = function(self, impact, attack)
+ 		return true
+@@ -9452,7 +9527,8 @@
+ 			for i = 1, math_random(4) + 4 do
+ 				local ang = math_pi * 2 * math_random()
+ 				local dist = math_random() * 50
+-				local fx = target:emitPpFxAt("sparkSourceFlashWhite", target.x + math_cos(ang) * dist, target.y + math_sin(ang) * dist)
++				local fx = target:emitPpFxAt("sparkSourceFlashWhite", target.x + math_cos(ang) * dist,
++					target.y + math_sin(ang) * dist)
+ 				
+ 				fx:applyColor(self.color)
+ 				fx:setSpeed(math_random() * math_pi * 2, math_random() * 10 * self.power)
+@@ -9474,9 +9550,11 @@
+ 					local def = self.def
+ 					
+ 					if target:isHackable() and not target.player then
+-						target:performHackTeam(master, (def.hack_base_factor + self.power * def.hack_variable_factor) * def.hack_factor)
++						target:performHackTeam(master,
++							(def.hack_base_factor + self.power * def.hack_variable_factor) * def.hack_factor)
+ 					else
+-						target:performHackBio((def.hack_bio_base_factor + def.hack_bio_variable_factor * self.power) * def.hack_bio_factor)
++						target:performHackBio((def.hack_bio_base_factor + def.hack_bio_variable_factor * self.power) *
++						def.hack_bio_factor)
+ 					end
+ 					
+ 					self:performReaction(impact)
+@@ -9577,7 +9655,8 @@
+ 			local def = self.def
+ 			
+ 			if target:isPlayerControlled() then
+-				target:performHackBio((def.hack_bio_base_factor + def.hack_bio_variable_factor * self.power) * def.hack_bio_factor)
++				target:performHackBio((def.hack_bio_base_factor + def.hack_bio_variable_factor * self.power) *
++				def.hack_bio_factor)
+ 			else
+ 				target:addCharming(self.owner, self.power * (self.charming or 1))
+ 			end
+@@ -9683,7 +9762,8 @@
+ 	end
+ 	
+ 	if self:isInView(750) then
+-		self:emitLoop("burner", 0.5 * math_max(0, self.soundProgress * 1 - math_max(0, self.time) / self.lifeTime), math_max(0.8, 0.8 + 0.4 * self.soundProgress * 1 - math_max(0, self.time) / self.lifeTime), RANGES.long)
++		self:emitLoop("burner", 0.5 * math_max(0, self.soundProgress * 1 - math_max(0, self.time) / self.lifeTime),
++			math_max(0.8, 0.8 + 0.4 * self.soundProgress * 1 - math_max(0, self.time) / self.lifeTime), RANGES.long)
+ 	end
+ 	
+ 	if self.lifeTime and self.time > self.lifeTime then
+@@ -9723,7 +9803,8 @@
+ 		local time = math_min(APP.stepTime / 8, buffer)
+ 		
+ 		buffer = buffer - APP.stepTime / 8
+-		self.wobble = math_cos(self.wobbleTimer * 15 * math_pi / self.def.damageFalloffSpeed * 50) * math_max(0, (self.def.damageFalloffSpeed - self:getSpeed()) / self.def.damageFalloffSpeed) / self:getMass() * 0.75
++		self.wobble = math_cos(self.wobbleTimer * 15 * math_pi / self.def.damageFalloffSpeed * 50) *
++		math_max(0, (self.def.damageFalloffSpeed - self:getSpeed()) / self.def.damageFalloffSpeed) / self:getMass() * 0.75
+ 		
+ 		local speed = self:getSpeed()
+ 		
+@@ -9747,7 +9828,11 @@
+ 	
+ 	local len = self.def.rayLength
+ 	local ang = self.angle
+-	local result, hitx, hity, nx, ny, userData, id = self.map.physics:raycastPoints((self.x - math_cos(ang) * len) * resolution, (self.y - math_sin(ang) * len) * resolution, (nextX + math_cos(ang) * len) * resolution, (nextY + math_sin(ang) * len) * resolution, true, _collisionCategory.bullets, _collisionFilter.notIdleObjectsNoSensorNoBullets, self.ignore and self.ignore.bodyFilter or -self.body)
++	local result, hitx, hity, nx, ny, userData, id = self.map.physics:raycastPoints(
++	(self.x - math_cos(ang) * len) * resolution, (self.y - math_sin(ang) * len) * resolution,
++		(nextX + math_cos(ang) * len) * resolution, (nextY + math_sin(ang) * len) * resolution, true,
++		_collisionCategory.bullets, _collisionFilter.notIdleObjectsNoSensorNoBullets,
++		self.ignore and self.ignore.bodyFilter or -self.body)
+ 	
+ 	if result then
+ 		hitx = hitx / resolution
+@@ -9832,7 +9917,8 @@
+ 		if self.trailDist > 45 then
+ 			while self.trailDist > 45 do
+ 				local angleTo = math_angleBetweenPoints(lastX, lastY, nextX, nextY)
+-				local midX, midY = lastX + math_cos(angleTo) * math_min(45, self.trailDist), lastY + math_sin(angleTo) * math_min(45, self.trailDist)
++				local midX, midY = lastX + math_cos(angleTo) * math_min(45, self.trailDist),
++						lastY + math_sin(angleTo) * math_min(45, self.trailDist)
+ 				local fx = self:emitFxAt("railTwigglyTrail", midX, midY)
+ 				
+ 				fx:setMasterScale(self.def.trailScale or 1)
+@@ -9940,7 +10026,8 @@
+ 	if self.lx then
+ 		local lx, ly = x - self.x + self.lx, y - self.y + self.ly
+ 		
+-		video.renderSpriteLine(lx, ly, x, y, 255, cr * op * 0.25, cg * op * 0.25, op * op * 0.5, SPRITES.lineAdditiveGlow, true, self.def.trail_width)
++		video.renderSpriteLine(lx, ly, x, y, 255, cr * op * 0.25, cg * op * 0.25, op * op * 0.5, SPRITES.lineAdditiveGlow,
++			true, self.def.trail_width)
+ 	end
+ 	
+ 	video.renderSpriteState(self.def.sprite, x, y, 1, self.angle, 255, r, g, b, self.flipped)
+@@ -10375,20 +10462,26 @@
+ 	end,
+ 	getWidths = function(self)
+ 		local _time = _time
+-		local widthA = 1 + (8 + math_cos(_time * 97) * 3 * math_easeOut(math_min(1, self.power * self.alpha))) * math_easeOut(math_min(1, self.power * self.alpha * 0.7))
+-		local widthB = (7 + math_cos(_time * 97) * 3 * self.power * self.alpha) * math_min(1, math_max(0, self.power * self.alpha - 0.4) / 0.25)
+-		local widthC = (8 + math_cos(_time * 97) * 3 * self.power * self.alpha) * math_min(1, math_max(0, self.power * self.alpha - 1.2) / 0.25)
++		local widthA = 1 +
++		(8 + math_cos(_time * 97) * 3 * math_easeOut(math_min(1, self.power * self.alpha))) *
++		math_easeOut(math_min(1, self.power * self.alpha * 0.7))
++		local widthB = (7 + math_cos(_time * 97) * 3 * self.power * self.alpha) *
++		math_min(1, math_max(0, self.power * self.alpha - 0.4) / 0.25)
++		local widthC = (8 + math_cos(_time * 97) * 3 * self.power * self.alpha) *
++		math_min(1, math_max(0, self.power * self.alpha - 1.2) / 0.25)
+ 		
+ 		return widthA, widthB, widthC
+ 	end,
+ 	getLightWidth = function(self)
+-		return (10 + math_cos(_time * 97) * 1 * self.power * self.alpha) * math_min(2, math_max(0, math_easeOut(math_min(1, self.power * self.alpha * 0.7)) - 0.45) / 0.15)
++		return (10 + math_cos(_time * 97) * 1 * self.power * self.alpha) *
++		math_min(2, math_max(0, math_easeOut(math_min(1, self.power * self.alpha * 0.7)) - 0.45) / 0.15)
+ 	end,
+ 	lightMapRenderMethod = function(self, x, y)
+ 		local startX, startY = x - self.x + self.lastX, y - self.y + self.lastY
+ 		local widthC = self.def.getLightWidth(self)
+ 		
+-		video.renderBeamSprite(self.def.customSprites.additive, startX, startY, x, y, widthC, math_min(64, 64 * self.alpha * math_easeOut(math_min(1, self.power))), 80, 245, 255)
++		video.renderBeamSprite(self.def.customSprites.additive, startX, startY, x, y, widthC,
++			math_min(64, 64 * self.alpha * math_easeOut(math_min(1, self.power))), 80, 245, 255)
+ 	end,
+ 	initMethod = beamRayObjectInit,
+ 	onRemovedMethod = function(self)
+@@ -10535,10 +10628,13 @@
+ 			local realAngle = self.angle
+ 			local sx1, sy1 = x + math_cos(realAngle - half_pi) * width, y + math_sin(realAngle - half_pi) * width
+ 			local sx2, sy2 = x + math_cos(realAngle + half_pi) * width, y + math_sin(realAngle + half_pi) * width
+-			local tx1, ty1 = x + math_cos(realAngle) * self.dist + math_cos(realAngle - half_pi) * width, y + math_sin(realAngle) * self.dist + math_sin(realAngle - half_pi) * width
+-			local tx2, ty2 = x + math_cos(realAngle) * self.dist + math_cos(realAngle + half_pi) * width, y + math_sin(realAngle) * self.dist + math_sin(realAngle + half_pi) * width
++			local tx1, ty1 = x + math_cos(realAngle) * self.dist + math_cos(realAngle - half_pi) * width,
++					y + math_sin(realAngle) * self.dist + math_sin(realAngle - half_pi) * width
++			local tx2, ty2 = x + math_cos(realAngle) * self.dist + math_cos(realAngle + half_pi) * width,
++					y + math_sin(realAngle) * self.dist + math_sin(realAngle + half_pi) * width
+ 			
+-			video.renderSpriteStateFreeShape(self.def.sprite, sx1, sy1, tx1, ty1, sx2, sy2, tx2, ty2, 255 * self.alpha, 255, 255, 255)
++			video.renderSpriteStateFreeShape(self.def.sprite, sx1, sy1, tx1, ty1, sx2, sy2, tx2, ty2, 255 * self.alpha, 255,
++				255, 255)
+ 		end
+ 	end,
+ 	initMethod = beamRayWarningObjectInit,
+@@ -10571,7 +10667,9 @@
+ 			
+ 			local angle = self.angle
+ 			
+-			self:setBounds(math_min(self.x, self.x + math_cos(angle) * self.dist), math_min(self.y, self.y + math_sin(angle) * self.dist), math_max(self.x, self.x + math_cos(angle) * self.dist), math_max(self.y, self.y + math_sin(angle) * self.dist))
++			self:setBounds(math_min(self.x, self.x + math_cos(angle) * self.dist),
++				math_min(self.y, self.y + math_sin(angle) * self.dist), math_max(self.x, self.x + math_cos(angle) * self.dist),
++				math_max(self.y, self.y + math_sin(angle) * self.dist))
+ 		else
+ 			self:remove()
+ 		end
+@@ -10992,8 +11090,10 @@
+ 		local prg = self.totalTimer * 10
+ 		local cusprites = def.customSprites
+ 		
+-		video.renderSpriteState(cusprites.glow1, x, y, 1, angle, math_min(255, math_abs(math_cos(prg) * math_cos(prg) * 255) * 3), 255, 255, 255, self.flipped)
+-		video.renderSpriteState(cusprites.glow2, x, y, 1, angle, math_min(255, math_abs(math_cos(prg) * math_sin(prg) * 255) * 3), 255, 255, 255, self.flipped)
++		video.renderSpriteState(cusprites.glow1, x, y, 1, angle,
++			math_min(255, math_abs(math_cos(prg) * math_cos(prg) * 255) * 3), 255, 255, 255, self.flipped)
++		video.renderSpriteState(cusprites.glow2, x, y, 1, angle,
++			math_min(255, math_abs(math_cos(prg) * math_sin(prg) * 255) * 3), 255, 255, 255, self.flipped)
+ 	end,
+ 	logic = {
+ 		"missile",
+@@ -11170,19 +11270,24 @@
+ 		local color = self.color
+ 		local r, g, b = color.r, color.g, color.b
+ 		
+-		video.renderSpriteState(sprite, x, y, pow_int * 1 + math_cos(time_pi * 2) * 0.2, angle + time_pi * 3, 255, r, g, b, flipped)
+-		video.renderSpriteState(sprite, x, y, pow_int * 0.9 + math_cos(time_pi * 1.2) * 0.1, angle + time_pi * 1.25, 255, r, g, b, flipped)
++		video.renderSpriteState(sprite, x, y, pow_int * 1 + math_cos(time_pi * 2) * 0.2, angle + time_pi * 3, 255, r, g, b,
++			flipped)
++		video.renderSpriteState(sprite, x, y, pow_int * 0.9 + math_cos(time_pi * 1.2) * 0.1, angle + time_pi * 1.25, 255, r,
++			g, b, flipped)
+ 		
+ 		local br, bg, bb = math_min(255, r + 128), math_min(255, g + 128), math_min(255, b + 128)
+ 		
+-		video.renderSpriteState(sprite, x, y, pow_int * 0.4 - math_cos(time_pi * 3.2) * 0.2, angle - time_pi * 3, 255, br, bg, bb, flipped)
+-		video.renderSpriteState(sprite, x, y, pow_int * 0.3 + math_sin(time_pi * 2.5) * 0.1, angle - time_pi * 1.75, 255, br, bg, bb, flipped)
++		video.renderSpriteState(sprite, x, y, pow_int * 0.4 - math_cos(time_pi * 3.2) * 0.2, angle - time_pi * 3, 255, br, bg,
++			bb, flipped)
++		video.renderSpriteState(sprite, x, y, pow_int * 0.3 + math_sin(time_pi * 2.5) * 0.1, angle - time_pi * 1.75, 255, br,
++			bg, bb, flipped)
+ 	end,
+ 	lightMapRenderMethod = function(self, x, y)
+ 		local color = self.color
+ 		local r, g, b = color.r, color.g, color.b
+ 		
+-		video.renderAdditiveSpriteState(FX.glow.sprite, x, y, self.power * (0.15 + math_abs(math_sin(_time * math_pi * 9.5)) * 0.2), 0, r, g, b, self.flipped)
++		video.renderAdditiveSpriteState(FX.glow.sprite, x, y,
++			self.power * (0.15 + math_abs(math_sin(_time * math_pi * 9.5)) * 0.2), 0, r, g, b, self.flipped)
+ 	end,
+ 	initMethod = blasterObjectInit,
+ 	initRuntimeMethod = function(self)
+@@ -11334,7 +11439,8 @@
+ 		local li = math_min(255, fluct * 20)
+ 		local cusprites = def.customSprites
+ 		
+-		video.renderAdditiveSpriteState(cusprites.glow, x, y, math_easeOut(math_sqrt(power)) * 0.5, self.angle + spinTimer * math_pi * iff + math_pi * 1.5, li, li, li, self.flipped)
++		video.renderAdditiveSpriteState(cusprites.glow, x, y, math_easeOut(math_sqrt(power)) * 0.5,
++			self.angle + spinTimer * math_pi * iff + math_pi * 1.5, li, li, li, self.flipped)
+ 		
+ 		if self.lx then
+ 			local lx, ly = x - self.x + self.lx, y - self.y + self.ly
+@@ -11375,7 +11481,8 @@
+ 		local fluct = pf * math_abs(math_cos(self.totalMotion / 20))
+ 		local li = pf * math_min(255, 30 + fluct * 10)
+ 		
+-		video.renderRawAdditiveSpriteState(self.def.customSprites.glow, x, y, math_easeOut(sqpow * 0.75) * 1.25 + pf * 1.25 + fluct * 0.25, 0, li, li, li, self.flipped)
++		video.renderRawAdditiveSpriteState(self.def.customSprites.glow, x, y,
++			math_easeOut(sqpow * 0.75) * 1.25 + pf * 1.25 + fluct * 0.25, 0, li, li, li, self.flipped)
+ 	end,
+ 	initMethod = genericInitPlasma,
+ 	initRuntimeMethod = function(self)
+@@ -11573,7 +11680,8 @@
+ 		local power = self.power
+ 		
+ 		fx:setTime(math_max(0, 1 - power))
+-		self:emitSoundAt("plasmaHit", x, y, math_easeOut(math_min(1, self.power)), 1.75 - 1.25 * math_easeOut(math_min(1, self.power)), 500 * self.power)
++		self:emitSoundAt("plasmaHit", x, y, math_easeOut(math_min(1, self.power)),
++			1.75 - 1.25 * math_easeOut(math_min(1, self.power)), 500 * self.power)
+ 		
+ 		local detail = _config.graphicsFx
+ 		
+@@ -11665,8 +11773,10 @@
+ 		local angle = self.angle
+ 		local def = self.def
+ 		
+-		video.renderSpriteState(def.sprite, x, y, 1, angle + self.spinTimer, math_min(255, math_easeOut(math_min(1, power)) * 255), 255, 255, 255)
+-		video.renderSpriteState(def.customSprites.dust, x, y, 1.2, angle + self.spinTimer * 2, 128 + math_cos(_time * 15) * 127, 255, 255, 255)
++		video.renderSpriteState(def.sprite, x, y, 1, angle + self.spinTimer,
++			math_min(255, math_easeOut(math_min(1, power)) * 255), 255, 255, 255)
++		video.renderSpriteState(def.customSprites.dust, x, y, 1.2, angle + self.spinTimer * 2,
++			128 + math_cos(_time * 15) * 127, 255, 255, 255)
+ 	end,
+ 	initMethod = chemicalObjectInit,
+ 	onRemovedMethod = function(self)
+@@ -12031,7 +12141,8 @@
+ 	id = "tileDebris",
+ 	debris = true,
+ 	renderMethod = function(self, x, y, r, g, b)
+-		video.renderSpriteState(self.tileDef.sprites[self.variation], x, y, self.scale, self.angle, 255, r, g, b, self.flipped)
++		video.renderSpriteState(self.tileDef.sprites[self.variation], x, y, self.scale, self.angle, 255, r, g, b,
++			self.flipped)
+ 	end,
+ 	initMethod = function(self, tileId)
+ 		self:setRemovable()
+@@ -12248,9 +12359,11 @@
+ 		local alpha = (self.fade or 1) * 255
+ 		
+ 		if self.children and #self.children > 0 then
+-			video.renderSpriteState(self.def.sprites[self.variation], x + math_cos(self.angle) * -6, y + math_sin(self.angle) * -6, 1, self.angle, alpha, r, g, b, false)
++			video.renderSpriteState(self.def.sprites[self.variation], x + math_cos(self.angle) * -6,
++				y + math_sin(self.angle) * -6, 1, self.angle, alpha, r, g, b, false)
+ 		else
+-			video.renderSpriteState(self.def.customSprites.cordPieceEnd, x + math_cos(self.angle) * -6, y + math_sin(self.angle) * -6, 1, self.angle, alpha, r, g, b, false)
++			video.renderSpriteState(self.def.customSprites.cordPieceEnd, x + math_cos(self.angle) * -6,
++				y + math_sin(self.angle) * -6, 1, self.angle, alpha, r, g, b, false)
+ 		end
+ 	end,
+ 	initMethod = cordObjectInit,
+@@ -12340,7 +12453,8 @@
+ 		local color = self.color or COLORS.white
+ 		
+ 		video.renderSpriteState(def.sprites[variation], x, y, 1, angle, 255 * opacity, r, g, b, false)
+-		video.renderSpriteState(def.customSprites[def.customSpriteNames[variation]], x, y, 1, angle, opacity * color.a, color.r, color.g, color.b, false)
++		video.renderSpriteState(def.customSprites[def.customSpriteNames[variation]], x, y, 1, angle, opacity * color.a,
++			color.r, color.g, color.b, false)
+ 	end,
+ 	lightMapRenderMethod = function(self, x, y)
+ 		local def = self.def
+@@ -12349,7 +12463,8 @@
+ 		local opacity = self.opacity
+ 		local color = self.color or COLORS.white
+ 		
+-		video.renderSpriteState(def.customSprites[def.customSpriteNames[variation]], x, y, 1, angle, opacity * color.a, color.r, color.g, color.b, false)
++		video.renderSpriteState(def.customSprites[def.customSpriteNames[variation]], x, y, 1, angle, opacity * color.a,
++			color.r, color.g, color.b, false)
+ 	end,
+ 	updateRenderMethod = function(self)
+ 		local seed = self.seed
+@@ -12539,7 +12654,10 @@
+ 			local left_angle = angle - half_pi
+ 			local right_angle = angle + half_pi
+ 			
+-			video.renderSpriteStateFreeShape(self.sprite, x + math_cos(left_angle) * wh, y + math_sin(left_angle) * wh, cx + math_cos(left_angle_c) * wh, cy + math_sin(left_angle_c) * wh, x + math_cos(right_angle) * wh, y + math_sin(right_angle) * wh, cx + math_cos(right_angle_c) * wh, cy + math_sin(right_angle_c) * wh, 255, r, g, b)
++			video.renderSpriteStateFreeShape(self.sprite, x + math_cos(left_angle) * wh, y + math_sin(left_angle) * wh,
++				cx + math_cos(left_angle_c) * wh, cy + math_sin(left_angle_c) * wh, x + math_cos(right_angle) * wh,
++				y + math_sin(right_angle) * wh, cx + math_cos(right_angle_c) * wh, cy + math_sin(right_angle_c) * wh, 255, r, g,
++				b)
+ 		end
+ 	end,
+ 	initMethod = cordBObjectInit,
+@@ -12628,7 +12746,9 @@
+ 			spr = self.def.sprites[1]
+ 		end
+ 		
+-		video.renderSpriteStateFreeShape(spr, self.quad.x1 - self.x + x, self.quad.y1 - self.y + y, self.quad.x2 - self.x + x, self.quad.y2 - self.y + y, self.quad.x3 - self.x + x, self.quad.y3 - self.y + y, self.quad.x4 - self.x + x, self.quad.y4 - self.y + y, 255, r, g, b)
++		video.renderSpriteStateFreeShape(spr, self.quad.x1 - self.x + x, self.quad.y1 - self.y + y, self.quad.x2 - self.x + x,
++			self.quad.y2 - self.y + y, self.quad.x3 - self.x + x, self.quad.y3 - self.y + y, self.quad.x4 - self.x + x,
++			self.quad.y4 - self.y + y, 255, r, g, b)
+ 	end,
+ 	initMethod = camouflageObjectInit,
+ 	awakeMethod = function(self, time)
+@@ -12696,7 +12816,10 @@
+ 		self.quad.y3 = y + math_sin(self.angle + half_pi) * h1 + math_sin(self.angle + math_pi) * overLap / 2
+ 		self.quad.y4 = ty + math_sin(tAng + half_pi) * h2 + math_sin(tAng) * overLap / 2
+ 		
+-		self:setBounds(math_min(math_min(self.quad.x1, self.quad.x2), math_min(self.quad.x3, self.quad.x4)), math_min(math_min(self.quad.y1, self.quad.y2), math_min(self.quad.y3, self.quad.y4)), math_max(math_max(self.quad.x1, self.quad.x2), math_max(self.quad.x3, self.quad.x4)), math_max(math_max(self.quad.y1, self.quad.y2), math_max(self.quad.y3, self.quad.y4)))
++		self:setBounds(math_min(math_min(self.quad.x1, self.quad.x2), math_min(self.quad.x3, self.quad.x4)),
++			math_min(math_min(self.quad.y1, self.quad.y2), math_min(self.quad.y3, self.quad.y4)),
++			math_max(math_max(self.quad.x1, self.quad.x2), math_max(self.quad.x3, self.quad.x4)),
++			math_max(math_max(self.quad.y1, self.quad.y2), math_max(self.quad.y3, self.quad.y4)))
+ 	end,
+ 	render = {
+ 		oy = 0,
+@@ -13037,7 +13160,8 @@
+ 		"bubble5"
+ 	},
+ 	renderMethod = function(self, x, y, r, g, b)
+-		video.renderSpriteState(self.def.sprites[self.variation], x, y, self.scale, self.angle, self.alpha * 255, r, g, b, self.flipped)
++		video.renderSpriteState(self.def.sprites[self.variation], x, y, self.scale, self.angle, self.alpha * 255, r, g, b,
++			self.flipped)
+ 	end,
+ 	initMethod = function(self, scale)
+ 		self:setLifeTime(self.def.minLifeTime + (self.def.maxLifeTime - self.def.minLifeTime) * math_random() * math_random())
+@@ -13222,14 +13346,20 @@
+ 			r = 0
+ 		end
+ 		
+-		video.renderSpriteStateFreeShape(spr, self.quad.x1 - self.x + x, self.quad.y1 - self.y + y, self.quad.x2 - self.x + x, self.quad.y2 - self.y + y, self.quad.x3 - self.x + x, self.quad.y3 - self.y + y, self.quad.x4 - self.x + x, self.quad.y4 - self.y + y, 255, r, g, b)
++		video.renderSpriteStateFreeShape(spr, self.quad.x1 - self.x + x, self.quad.y1 - self.y + y, self.quad.x2 - self.x + x,
++			self.quad.y2 - self.y + y, self.quad.x3 - self.x + x, self.quad.y3 - self.y + y, self.quad.x4 - self.x + x,
++			self.quad.y4 - self.y + y, 255, r, g, b)
+ 		
+ 		if top then
+-			video.renderSpriteStateFreeShape(top, self.quadTop.x1 - self.x + x, self.quadTop.y1 - self.y + y, self.quadTop.x2 - self.x + x, self.quadTop.y2 - self.y + y, self.quadTop.x3 - self.x + x, self.quadTop.y3 - self.y + y, self.quadTop.x4 - self.x + x, self.quadTop.y4 - self.y + y, 255, r, g, b)
++			video.renderSpriteStateFreeShape(top, self.quadTop.x1 - self.x + x, self.quadTop.y1 - self.y + y,
++				self.quadTop.x2 - self.x + x, self.quadTop.y2 - self.y + y, self.quadTop.x3 - self.x + x,
++				self.quadTop.y3 - self.y + y, self.quadTop.x4 - self.x + x, self.quadTop.y4 - self.y + y, 255, r, g, b)
+ 		end
+ 		
+ 		if bot then
+-			video.renderSpriteStateFreeShape(bot, self.quadBottom.x1 - self.x + x, self.quadBottom.y1 - self.y + y, self.quadBottom.x2 - self.x + x, self.quadBottom.y2 - self.y + y, self.quadBottom.x3 - self.x + x, self.quadBottom.y3 - self.y + y, self.quadBottom.x4 - self.x + x, self.quadBottom.y4 - self.y + y, 255, r, g, b)
++			video.renderSpriteStateFreeShape(bot, self.quadBottom.x1 - self.x + x, self.quadBottom.y1 - self.y + y,
++				self.quadBottom.x2 - self.x + x, self.quadBottom.y2 - self.y + y, self.quadBottom.x3 - self.x + x,
++				self.quadBottom.y3 - self.y + y, self.quadBottom.x4 - self.x + x, self.quadBottom.y4 - self.y + y, 255, r, g, b)
+ 		end
+ 	end,
+ 	initMethod = pistonObjectInit,
+@@ -13297,7 +13427,10 @@
+ 			quadBottom.y3 = y + math_sin(side_angle) * h1 / 2 + math_sin(inv_angle) * half_overlap
+ 			quadBottom.y4 = botY + math_sin(tAng + half_pi) * h1 / 2 + math_sin(tAng) * half_overlap
+ 			
+-			self:setBounds(math_min(math_min(quad.x1, quad.x2), math_min(quad.x3, quad.x4)), math_min(math_min(quad.y1, quad.y2), math_min(quad.y3, quad.y4)), math_max(math_max(quad.x1, quad.x2), math_max(quad.x3, quad.x4)), math_max(math_max(quad.y1, quad.y2), math_max(quad.y3, quad.y4)))
++			self:setBounds(math_min(math_min(quad.x1, quad.x2), math_min(quad.x3, quad.x4)),
++				math_min(math_min(quad.y1, quad.y2), math_min(quad.y3, quad.y4)),
++				math_max(math_max(quad.x1, quad.x2), math_max(quad.x3, quad.x4)),
++				math_max(math_max(quad.y1, quad.y2), math_max(quad.y3, quad.y4)))
+ 		end
+ 	end,
+ 	render = {
+@@ -13365,6 +13498,7 @@
+ 	processItemDefs()
+ 	
+ 	for index, obj in pairs(OBJECTS) do
++		if not obj.index then
+ 		def_logic.defs_apply_key(OBJECTS, index)
+ 		
+ 		obj.index = index
+@@ -13515,6 +13649,7 @@
+ 			obj.fuzzySize = obj.bounds:getRadius()
+ 		end
+ 	end
++	end
+ end
+ 
+ Object.versions = {
+diff -X exclude -rubN daisyMoon/quickmenu.lua moddedDaisyMoon/quickmenu.lua
+--- daisyMoon/quickmenu.lua	2023-11-30 02:17:06.621108483 +0100
++++ moddedDaisyMoon/quickmenu.lua	2023-12-18 17:31:42.132658536 +0100
+@@ -33,7 +33,6 @@
+ 
+ local FTexts = {
+ 	"hub",
+-	"adventure",
+ 	"mode",
+ 	"asset",
+ 	"set",
+@@ -43,9 +42,19 @@
+ 	"world",
+ 	"mod"
+ }
++local FCtrlTexts = {
++	"adventure",
++	"",
++	"alloy",
++	"",
++	"",
++	"",
++	"",
++	"team",
++	"talk"
++}
+ local Fbuttons = {
+ 	"F1",
+-	"CTRL+F1",
+ 	"F2",
+ 	"F3",
+ 	"F4",
+@@ -58,9 +67,9 @@
+ local buttons = {
+ 	public = {
+ 		1,
+-		6,
+-		8,
+-		10
++		7,
++		9,
++		11
+ 	},
+ 	dev = {
+ 		1,
+@@ -72,8 +81,18 @@
+ 		7,
+ 		8,
+ 		9,
+-		10
+-	}
++	},
++}
++local keys = {
++		112,
++		113,
++		114,
++		115,
++		116,
++		117,
++		118,
++		119,
++		120,
+ }
+ 
+ function QuickMenu:render()
+@@ -82,11 +101,13 @@
+ 		
+ 		for b = 1, #buttons[self.fmenu] do
+ 			local i = buttons[self.fmenu][b]
++			local k = keys[b]
+ 			local x = (canvas.w - wi) * 0.5 + (b - 0.75) * wi / #buttons[self.fmenu]
+-			local a = daisy.isKeyPressed(111 + i) and 255 or 80
++			local a = daisy.isKeyPressed(k) and 255 or 80
+ 			
+-			video.renderShadowedTextSprites(Fbuttons[i], x, canvas.h - 30, 1, "small", a, 196, 196, 196, nil, 0.75)
+-			video.renderShadowedTextSprites(FTexts[i], x, canvas.h - 15, 1, "small", a, 255, 255, 255, nil, 0.75)
++			video.renderShadowedTextSprites(Fbuttons[i], x, canvas.h - 45, 1, "small", a, 196, 196, 196, nil, 0.75)
++			video.renderShadowedTextSprites(FTexts[i], x, canvas.h - 30, 1, "small", a, 255, 255, 255, nil, 0.75)
++			video.renderShadowedTextSprites(FCtrlTexts[i], x, canvas.h - 15, 1, "small", a, 255, 255, 255, nil, 0.75)
+ 		end
+ 	end
+ end

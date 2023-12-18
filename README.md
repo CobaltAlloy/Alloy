@@ -87,13 +87,13 @@ To install them:
 
 - Copy `eng.translations` into the game's `translations` folder,
 
-- Apply `alloy_editor_mod_xx.diff` over a prepared `daisyMoon` folder
+- Apply `alloy_editor_mod_x_x_x_sys.diff` over a prepared `daisyMoon` folder
 
 #### Applying diffs
 
 ##### Linux
 
-On linux systems, apply `alloy_editor_mod_x_x_x.diff` by executing the following command in the target Cobalt's root game directory:
+On linux systems, apply `alloy_editor_mod_x_x_x_lin.diff` by executing the following command in the target Cobalt's root game directory:
 
 ```
 patch -p0 < [path to alloy/lin/alloy_editor_mod_x_x_x_lin.diff]
@@ -118,7 +118,7 @@ Then, copy the `alloy` folder from this repo into your Cobalt game folder aswell
 To apply the patch, open cmd in the game folder and run the following command:
 
 ```
-.\patch.exe -p0 -i .\alloy\win\alloy_editor_mod_0_0_2_win.diff
+.\patch.exe -p0 -i .\alloy\win\alloy_editor_mod_0_0_3_win.diff
 ```
 
 To verify the patch applied correctly, check if the `daisyMoon` folder contains `alloy.lua`.
