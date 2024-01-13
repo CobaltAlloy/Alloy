@@ -1,0 +1,6 @@
+{
+	eng = {
+		description = "test and example alloy",
+		name = "example"
+	}
+}
