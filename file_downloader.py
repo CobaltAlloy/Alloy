@@ -1,23 +1,30 @@
 from urllib.error import HTTPError
 from urllib.error import ContentTooShortError
 from urllib import request
+import sys
 import os
 import time
 
-targetDir = "files2_Download"
-targetFile = "filelist2.txt"
-targetUrl = "http://assets.playcobalt.com/"
+if len(sys.argv) < 4:
+    print("usage: python file_downloader.py <downloadHost> <fileListName> <filesFolderName>")
+    quit()
 
-url = targetUrl + targetFile
-if not os.path.exists(targetFile):
-    print("Downloading required file " + targetFile)
-    response = request.urlretrieve(url, targetFile)
+downloadHost = "http://" + sys.argv[1]
+fileListName = sys.argv[2].removeprefix("/")
+filesFolderName = sys.argv[3].removeprefix("/").removesuffix("/")
 
-data = open(targetFile, "r").readlines()
+targetDir = filesFolderName + "_download"
+
+url = downloadHost + "/" + fileListName
+if not os.path.exists(fileListName):
+    print("Downloading required file " + fileListName)
+    response = request.urlretrieve(url, fileListName)
+
+data = open(fileListName, "r").readlines()
 for i, line in enumerate(data):
     file = line.strip().split(";")[3]
     
-    url = targetUrl + "files2/" + file.replace(" ", "%20")
+    url = downloadHost + "/" + filesFolderName + "/" + file.replace(" ", "%20")
     path = targetDir + "/" + file
     if not os.path.exists(path.rsplit("/", 1)[0]):
         os.makedirs(path.rsplit("/", 1)[0])
