@@ -1,8 +1,8 @@
+from urllib.error import HTTPError
+from urllib.error import ContentTooShortError
 from urllib import request
 import os
-import sys
 import time
-import threading
 
 targetDir = "files2_Download"
 targetFile = "filelist2.txt"
@@ -27,6 +27,11 @@ for i, line in enumerate(data):
             try:
                 response = request.urlretrieve(url, path)
                 break
-            except:
+            except ContentTooShortError:
                 print("Failed retrying in 5s")
-            time.sleep(5)
+                time.sleep(5)
+            except HTTPError as e:
+                if e.code == 404:
+                    print("Requested file doesn't exist")
+                    break
+print("Done")
