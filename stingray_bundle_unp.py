@@ -3,7 +3,7 @@ import sys
 import os
 
 if len(sys.argv) < 3:
-    print("usage: python file_downloader.py <targetBundlePath> <outputFolderpath>")
+    print("usage: python stingray_bundle_unp.py <targetBundlePath> <outputFolderpath>")
     quit()
 
 # provide 7efe or a copy of it
